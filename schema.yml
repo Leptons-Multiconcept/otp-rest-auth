@@ -1,0 +1,348 @@
+openapi: 3.0.3
+info:
+  title: Your Project API
+  version: 1.0.0
+  description: Your project description
+paths:
+  /register/:
+    post:
+      operationId: register_create
+      tags:
+      - register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - apiKeyAuth:
+          type: apiKey
+          name: Authorization
+          in: header
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Register'
+          description: ''
+  /register/login/:
+    post:
+      operationId: register_login_create
+      tags:
+      - register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - apiKeyAuth:
+          type: apiKey
+          name: Authorization
+          in: header
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Login'
+          description: ''
+  /register/logout/:
+    post:
+      operationId: register_logout_create
+      description: |-
+        Delete the Token object assigned to the current User object.
+        Accepts/Returns nothing.
+      tags:
+      - register
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - apiKeyAuth:
+          type: apiKey
+          name: Authorization
+          in: header
+      responses:
+        '200':
+          description: No response body
+  /register/resend_otp/:
+    post:
+      operationId: register_resend_otp_create
+      tags:
+      - register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResendOTPRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ResendOTPRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResendOTPRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - apiKeyAuth:
+          type: apiKey
+          name: Authorization
+          in: header
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResendOTP'
+          description: ''
+  /register/verify/account:
+    post:
+      operationId: register_verify_account_create
+      tags:
+      - register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OTPRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OTPRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OTPRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - apiKeyAuth:
+          type: apiKey
+          name: Authorization
+          in: header
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OTP'
+          description: ''
+  /register/verify/email:
+    post:
+      operationId: register_verify_email_create
+      tags:
+      - register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OTPRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OTPRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OTPRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - apiKeyAuth:
+          type: apiKey
+          name: Authorization
+          in: header
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OTP'
+          description: ''
+  /register/verify/phone:
+    post:
+      operationId: register_verify_phone_create
+      tags:
+      - register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OTPRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OTPRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OTPRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - apiKeyAuth:
+          type: apiKey
+          name: Authorization
+          in: header
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OTP'
+          description: ''
+components:
+  schemas:
+    Login:
+      type: object
+      properties:
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+        password:
+          type: string
+      required:
+      - password
+    LoginRequest:
+      type: object
+      properties:
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+        password:
+          type: string
+          minLength: 1
+      required:
+      - password
+    OTP:
+      type: object
+      properties:
+        otp:
+          type: integer
+      required:
+      - otp
+    OTPRequest:
+      type: object
+      properties:
+        otp:
+          type: integer
+      required:
+      - otp
+    PurposeEnum:
+      enum:
+      - PasswordReset
+      - EmailVerification
+      - PhoneVerification
+      - AccountVerification
+      type: string
+      description: |-
+        * `PasswordReset` - Password Reset
+        * `EmailVerification` - Email Verification
+        * `PhoneVerification` - Phone Verification
+        * `AccountVerification` - Account Verification
+    Register:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 15
+          minLength: 3
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+      required:
+      - email
+      - phone
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 15
+        phone:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+          minLength: 1
+        password1:
+          type: string
+          writeOnly: true
+          minLength: 1
+        password2:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - email
+      - password1
+      - password2
+      - phone
+    ResendOTP:
+      type: object
+      properties:
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        purpose:
+          $ref: '#/components/schemas/PurposeEnum'
+      required:
+      - purpose
+    ResendOTPRequest:
+      type: object
+      properties:
+        phone:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+          minLength: 1
+        purpose:
+          $ref: '#/components/schemas/PurposeEnum'
+      required:
+      - purpose
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
