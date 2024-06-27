@@ -1,5 +1,5 @@
 """
-ASGI config for drf_simple_auth project.
+ASGI config for otp_rest_auth project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'drf_simple_auth.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "otp_rest_auth.settings")
 
 application = get_asgi_application()

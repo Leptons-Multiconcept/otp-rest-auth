@@ -1,5 +1,5 @@
 """
-URL configuration for drf_simple_auth project.
+URL configuration for otp_rest_auth project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.0/topics/http/urls/
