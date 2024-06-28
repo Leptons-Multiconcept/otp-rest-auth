@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth.forms import SetPasswordForm
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model, authenticate
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -7,7 +8,13 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from .app_settings import app_settings
 from .adapter import DefaultAccountAdapter
 from .models import Account, TOTP
-from .utils import get_user_by_phone, get_user_by_email
+from .otp_ops import verify_otp, validate_otp
+from .utils import (
+    get_user_by_phone,
+    get_user_by_email,
+    get_user_by_username,
+    get_auth_method_field,
+)
 
 
 UserModel = get_user_model()
@@ -132,10 +139,10 @@ class ResendOTPSerializer(serializers.Serializer):
                 raise serializers.ValidationError(_('"phone" field is required.'))
 
         if data["purpose"] == TOTP.PURPOSE_PASSWORD_RESET:
-            if "phone" in app_settings.PWD_RESET_OTP_RECIPIENTS:
+            if "phone" in app_settings.PASSWORD_RESET_OTP_RECIPIENTS:
                 if "phone" not in data:
                     raise serializers.ValidationError(_("'phone' field is required."))
-            if "email" in app_settings.PWD_RESET_OTP_RECIPIENTS:
+            if "email" in app_settings.PASSWORD_RESET_OTP_RECIPIENTS:
                 if "email" not in data:
                     raise serializers.ValidationError(_('"email" field is required.'))
 
@@ -224,7 +231,7 @@ class LoginSerializer(serializers.Serializer):
 
         if not credentials:
             if len(auth_methods) == 1:
-                msg = _(f'Must include "{method}" and "password".')
+                msg = _(f'Must include "{auth_methods[0]}" and "password".')
             else:
                 auth_methods_str = (
                     '", "'.join(auth_methods[:-1]) + f'", or "{auth_methods[-1]}"'
@@ -278,3 +285,85 @@ class LoginSerializer(serializers.Serializer):
 
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    phone = PhoneNumberField(required=False, allow_blank=True)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    username = serializers.CharField(required=False, allow_blank=True)
+
+    def get_user(self, data):
+        user = None
+        requried_auth_method_provided = False
+
+        auth_methods = app_settings.AUTHENTICATION_METHODS
+        for method in auth_methods:
+            if data.get(method):
+                method_value = data.get(method)
+                if method_value:
+                    requried_auth_method_provided = True
+                else:
+                    continue
+
+                method_field = get_auth_method_field(method)
+
+                if method_field == app_settings.USER_MODEL_USERNAME_FIELD:
+                    user = get_user_by_username(method_value)
+                elif method_field == app_settings.USER_MODEL_EMAIL_FIELD:
+                    user = get_user_by_email(method_value)
+                elif method_field == app_settings.USER_MODEL_PHONE_FIELD:
+                    user = get_user_by_phone(method_value)
+
+                if user:
+                    break
+
+        if not requried_auth_method_provided:
+            if len(auth_methods) == 1:
+                msg = _(f'Must include "{auth_methods[0]}".')
+            else:
+                auth_methods_str = (
+                    '", "'.join(auth_methods[:-1]) + f'", or "{auth_methods[-1]}"'
+                )
+                auth_methods_str = f'"{auth_methods_str}'
+                msg = _(f"Must include either {auth_methods_str}.")
+            raise serializers.ValidationError(msg)
+
+        return user
+
+    def validate(self, attrs):
+        user = self.get_user(attrs)
+        attrs["user"] = user
+
+        return attrs
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    otp = serializers.IntegerField()
+    new_password1 = serializers.CharField(max_length=128)
+    new_password2 = serializers.CharField(max_length=128)
+
+    totp = None
+    set_password_form = None
+
+    def validate_otp(self, otp):
+        try:
+            is_valid, self.totp = validate_otp(otp, TOTP.PURPOSE_PASSWORD_RESET)
+            if not is_valid:
+                raise serializers.ValidationError(_("Invalid OTP."))
+
+        except TOTP.DoesNotExist:
+            raise serializers.ValidationError(_("Invalid OTP."))
+
+    def validate(self, data):
+        self.set_password_form = SetPasswordForm(
+            user=self.totp.user,
+            data=data,
+        )
+        if not self.set_password_form.is_valid():
+            raise serializers.ValidationError(self.set_password_form.errors)
+
+        return data
+
+    def save(self):
+        verify_otp(self.totp._otp, TOTP.PURPOSE_PASSWORD_RESET)
+        return self.set_password_form.save()

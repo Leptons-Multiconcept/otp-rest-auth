@@ -66,11 +66,29 @@ class AppSettings(object):
         )
 
     @property
-    def PWD_RESET_OTP_RECIPIENTS(self):
+    def PASSWORD_RESET_OTP_RECIPIENTS(self):
         """
         Where to send password reset OTP to. Phone, Email, or both.
         """
-        return self._setting("PWD_RESET_OTP_RECIPIENTS", ("phone", "email"))
+        return self._setting("PASSWORD_RESET_OTP_RECIPIENTS", ("phone", "email"))
+
+    @property
+    def PASSWORD_RESET_OTP_EXPIRY_TIME(self):
+        return self._setting("PASSWORD_RESET_OTP_EXPIRY_TIME", 3360)
+
+    @property
+    def PASSWORD_RESET_CONFIRM_SERIALIZER(self):
+        from .serializers import PasswordResetConfirmSerializer
+
+        return self._setting(
+            "PASSWORD_RESET_CONFIRM_SERIALIZER", PasswordResetConfirmSerializer
+        )
+
+    @property
+    def PASSWORD_RESET_SERIALIZER(self):
+        from .serializers import PasswordResetSerializer
+
+        return self._setting("PASSWORD_RESET_SERIALIZER", PasswordResetSerializer)
 
     @property
     def JWT_SERIALIZER(self):

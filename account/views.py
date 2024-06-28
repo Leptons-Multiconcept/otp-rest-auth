@@ -2,7 +2,6 @@ from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.utils.decorators import method_decorator
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.debug import sensitive_post_parameters
 from rest_framework import status, views
@@ -11,7 +10,7 @@ from rest_framework.exceptions import MethodNotAllowed
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.generics import CreateAPIView, GenericAPIView, ListAPIView
+from rest_framework.generics import CreateAPIView, GenericAPIView
 
 from .app_settings import app_settings
 from . import signals
@@ -364,3 +363,41 @@ class LogoutView(GenericAPIView):
             response.status_code = status.HTTP_200_OK
 
         return response
+
+
+class ResetPasswordView(GenericAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = app_settings.PASSWORD_RESET_SERIALIZER
+    throttle_scope = "dj_rest_auth"
+
+    def post(self, request, *args, **kwargs):
+        self.request = request
+        self.serializer = self.get_serializer(data=self.request.data)
+        self.serializer.is_valid(raise_exception=True)
+
+        user = self.serializer.validated_data["user"]
+        if user:
+            totp = TOTP.objects.create(user=user, purpose=TOTP.PURPOSE_PASSWORD_RESET)
+            send_verification_otp(totp, request)
+
+        return Response(
+            {"detail": _("Verification OTP sent.")}, status=status.HTTP_200_OK
+        )
+
+
+class PasswordResetConfirmView(GenericAPIView):
+    serializer_class = app_settings.PASSWORD_RESET_CONFIRM_SERIALIZER
+    permission_classes = (AllowAny,)
+    throttle_scope = "dj_rest_auth"
+
+    @sensitive_post_parameters_m
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {"detail": _("Password has been reset with the new password.")},
+        )
