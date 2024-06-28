@@ -8,13 +8,20 @@ from .adapter import DefaultAccountAdapter
 adapter = DefaultAccountAdapter()
 
 
-def verify_otp(otp: int, purpose: str):
+def validate_otp(otp: int, purpose: str):
     totp = TOTP.objects.filter(_otp=otp, purpose=purpose).first()
     if not totp:
-        print(f"token: {otp}, purpose: {purpose}")
         return False, None
-    if totp.is_expired() or not totp.is_valid:
+    if totp.is_expired or not totp.is_valid:
         return False, None
+
+    return True, totp
+
+
+def verify_otp(otp: int, purpose: str):
+    is_valid, totp = validate_otp(otp, purpose)
+    if not is_valid:
+        return False
 
     # Confirm OTP
     totp.is_valid = False
@@ -54,7 +61,7 @@ def send_verification_otp(totp: TOTP, request=None, signup=False):
         signal_phone_confirmation_sent()
 
     elif totp.purpose == TOTP.PURPOSE_PASSWORD_RESET:
-        medium = app_settings.PWD_RESET_OTP_RECIPIENTS
+        medium = app_settings.PASSWORD_RESET_OTP_RECIPIENTS
         if "phone" in medium:
             adapter.send_otp_to_phone(totp)
         if "email" in medium:
