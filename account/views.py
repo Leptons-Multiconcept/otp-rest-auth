@@ -1,3 +1,4 @@
+import requests
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth import get_user_model
@@ -400,4 +401,61 @@ class PasswordResetConfirmView(GenericAPIView):
         serializer.save()
         return Response(
             {"detail": _("Password has been reset with the new password.")},
+        )
+
+
+class PasswordChangeView(GenericAPIView):
+    serializer_class = app_settings.PASSWORD_CHANGE_SERIALIZER
+    permission_classes = (IsAuthenticated,)
+    throttle_scope = "dj_rest_auth"
+
+    @sensitive_post_parameters_m
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"detail": _("New password has been saved.")})
+
+
+class GoogleLogin(GenericAPIView):
+    def verify_google_token(self, token):
+        response = requests.get(
+            f"https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={token}"
+        )
+        if response.status_code == 200:
+            return response.json()
+        return None
+
+    def post(self, request):
+        # Assuming the frontend sends an access token from Google
+        access_token = request.data.get("access_token")
+
+        # Exchange the access token for user information from Google
+        # You need to implement this part to verify the token with Google API
+        user_info = self.verify_google_token(access_token)
+        if not user_info:
+            return Response(
+                {"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Retrieve or create the user
+        user, created = UserModel.objects.get_or_create(
+            username=user_info["email"],
+            defaults={
+                "email": user_info["email"],
+                "first_name": user_info["first_name"],
+                "last_name": user_info["last_name"],
+            },
+        )
+
+        # Generate JWT token
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            }
         )

@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 
 from .views import (
     RegisterView,
@@ -9,6 +9,7 @@ from .views import (
     VerifyAccountView,
     VerifyEmailView,
     VerifyPhoneView,
+    PasswordChangeView,
     PasswordResetConfirmView,
 )
 
@@ -27,5 +28,10 @@ urlpatterns = [
         "password/reset/confirm/",
         PasswordResetConfirmView.as_view(),
         name="otp_rest_password_reset_confirm",
+    ),
+    path(
+        "password/change/",
+        PasswordChangeView.as_view(),
+        name="otp_rest_password_change",
     ),
 ]
