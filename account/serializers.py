@@ -119,9 +119,6 @@ class ResendOTPSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False)
     purpose = serializers.ChoiceField(choices=TOTP.PURPOSE_CHOICES, required=True)
 
-    def validate_phone(self, phone):
-        return adapter.clean_phone(phone)
-
     def validate(self, data):
         if data["purpose"] == TOTP.PURPOSE_ACCOUNT_VERIFICATION:
             if "phone" not in data:
