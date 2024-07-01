@@ -27,7 +27,7 @@ class RegisterSerializer(serializers.Serializer):
         min_length=app_settings.USERNAME_MIN_LENGTH,
         required=app_settings.USERNAME_REQUIRED,
     )
-    phone = serializers.CharField(required=app_settings.EMAIL_REQUIRED)
+    phone = PhoneNumberField(required=app_settings.EMAIL_REQUIRED)
     email = serializers.EmailField(required=app_settings.PHONE_REQUIRED)
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(
@@ -39,7 +39,6 @@ class RegisterSerializer(serializers.Serializer):
         return username
 
     def validate_phone(self, phone):
-        phone = adapter.clean_phone(phone)
         if app_settings.UNIQUE_PHONE:
             user = get_user_by_phone(phone)
             if user:
@@ -116,7 +115,7 @@ class OTPSerializer(serializers.Serializer):
 
 
 class ResendOTPSerializer(serializers.Serializer):
-    phone = serializers.CharField(required=False)
+    phone = PhoneNumberField(required=False)
     email = serializers.EmailField(required=False)
     purpose = serializers.ChoiceField(choices=TOTP.PURPOSE_CHOICES, required=True)
 
