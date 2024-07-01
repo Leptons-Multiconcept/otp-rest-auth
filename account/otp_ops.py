@@ -1,7 +1,7 @@
 from django.utils import timezone
 
 from . import signals
-from .models import TOTP, Account
+from .models import TOTP
 from .app_settings import app_settings
 from .adapter import DefaultAccountAdapter
 
@@ -9,7 +9,7 @@ adapter = DefaultAccountAdapter()
 
 
 def validate_otp(otp: int, purpose: str):
-    totp = TOTP.objects.filter(_otp=otp, purpose=purpose).first()
+    totp = TOTP.objects.filter(otp=otp, purpose=purpose).first()
     if not totp:
         return False, None
     if totp.is_expired or not totp.is_valid:
@@ -21,7 +21,7 @@ def validate_otp(otp: int, purpose: str):
 def verify_otp(otp: int, purpose: str):
     is_valid, totp = validate_otp(otp, purpose)
     if not is_valid:
-        return False
+        return False, None
 
     # Confirm OTP
     totp.is_valid = False
