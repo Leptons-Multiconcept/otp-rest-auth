@@ -59,16 +59,12 @@ class TOTP(models.Model):
         on_delete=models.CASCADE,
     )
 
-    _otp = models.IntegerField()
+    otp = models.IntegerField()
     is_valid = models.BooleanField(default=True)
     invalidated_at = models.DateTimeField(null=True, blank=True)
     purpose = models.CharField(max_length=100, choices=PURPOSE_CHOICES)
     expiration_time = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
-
-    @property
-    def otp(self):
-        return self._otp
 
     @property
     def is_expired(self):
@@ -81,16 +77,18 @@ class TOTP(models.Model):
                 raise ValidationError(
                     "is_valid cannot be reset to True once set to False."
                 )
+            if original_state.otp != self.otp:
+                raise ValidationError("otp cannot be updated.")
 
         return super().clean()
 
     def save(self, *args, **kwargs):
         self.clean()
 
-        # set `_otp``
+        # set `otp``
         otp_len = app_settings.OTP_LENGTH
         otp = "".join([str(random.randint(0, 9)) for _ in range(otp_len)])
-        self._otp = int(otp)
+        self.otp = int(otp)
 
         # set `invalidated_at``
         if not self.is_valid and not self.invalidated_at:
@@ -102,9 +100,9 @@ class TOTP(models.Model):
                 self.expiration_time = timezone.now() - timedelta(
                     seconds=app_settings.PASSWORD_RESET_OTP_EXPIRY_TIME
                 )
-        else:
-            self.expiration_time = timezone.now() - timedelta(
-                seconds=app_settings.OTP_EXPIRY_TIME
-            )
+            else:
+                self.expiration_time = timezone.now() - timedelta(
+                    seconds=app_settings.OTP_EXPIRY_TIME
+                )
 
         super().save(*args, **kwargs)
