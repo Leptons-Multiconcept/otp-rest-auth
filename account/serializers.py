@@ -365,7 +365,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         return data
 
     def save(self):
-        verify_otp(self.totp._otp, TOTP.PURPOSE_PASSWORD_RESET)
+        verify_otp(self.totp.otp, TOTP.PURPOSE_PASSWORD_RESET)
         return self.set_password_form.save()
 
 
