@@ -3,7 +3,6 @@ from django.contrib.auth.forms import SetPasswordForm
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model, authenticate
 from django.core.exceptions import ValidationError as DjangoValidationError
-from phonenumber_field.serializerfields import PhoneNumberField
 
 from .app_settings import app_settings
 from .adapter import DefaultAccountAdapter
@@ -27,7 +26,7 @@ class RegisterSerializer(serializers.Serializer):
         min_length=app_settings.USERNAME_MIN_LENGTH,
         required=app_settings.USERNAME_REQUIRED,
     )
-    phone = PhoneNumberField(required=app_settings.EMAIL_REQUIRED)
+    phone = serializers.CharField(required=app_settings.EMAIL_REQUIRED)
     email = serializers.EmailField(required=app_settings.PHONE_REQUIRED)
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(
@@ -39,6 +38,7 @@ class RegisterSerializer(serializers.Serializer):
         return username
 
     def validate_phone(self, phone):
+        phone = adapter.clean_phone(phone)
         if app_settings.UNIQUE_PHONE:
             user = get_user_by_phone(phone)
             if user:
@@ -115,9 +115,12 @@ class OTPSerializer(serializers.Serializer):
 
 
 class ResendOTPSerializer(serializers.Serializer):
-    phone = PhoneNumberField(required=False)
+    phone = serializers.CharField(required=False)
     email = serializers.EmailField(required=False)
     purpose = serializers.ChoiceField(choices=TOTP.PURPOSE_CHOICES, required=True)
+
+    def validate_phone(self, phone):
+        return adapter.clean_phone(phone)
 
     def validate(self, data):
         if data["purpose"] == TOTP.PURPOSE_ACCOUNT_VERIFICATION:
@@ -207,13 +210,16 @@ class JWTSerializerWithExpiration(JWTSerializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    phone = PhoneNumberField(required=False, allow_blank=True)
+    phone = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField(required=False, allow_blank=True)
     username = serializers.CharField(required=False, allow_blank=True)
     password = serializers.CharField(style={"input_type": "password"})
 
     def authenticate(self, **kwargs):
         return authenticate(self.context["request"], **kwargs)
+
+    def validate_phone(self, phone):
+        return adapter.clean_phone(phone)
 
     def get_user(self, data):
         auth_methods = app_settings.AUTHENTICATION_METHODS
@@ -284,7 +290,7 @@ class LogoutSerializer(serializers.Serializer):
 
 
 class PasswordResetSerializer(serializers.Serializer):
-    phone = PhoneNumberField(required=False, allow_blank=True)
+    phone = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField(required=False, allow_blank=True)
     username = serializers.CharField(required=False, allow_blank=True)
 
@@ -325,6 +331,9 @@ class PasswordResetSerializer(serializers.Serializer):
             raise serializers.ValidationError(msg)
 
         return user
+
+    def validate_phone(self, phone):
+        return adapter.clean_phone(phone)
 
     def validate(self, attrs):
         user = self.get_user(attrs)

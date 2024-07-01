@@ -194,11 +194,19 @@ class DefaultAccountAdapter(object):
         """
         Validates a phone value.
         """
-        phone_validator = RegexValidator(
-            regex=r"^(\+?\d{0,4})?\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{4}\)?)?$",
-            message=_("The phone number provided is invalid."),
-        )
-        phone_validator(phone)
+        from django.core.exceptions import ValidationError
+        from phonenumber_field.serializerfields import PhoneNumber
+        from phonenumbers.phonenumberutil import NumberParseException
+        from phonenumber_field.validators import validate_international_phonenumber
+
+        try:
+            phone_number = PhoneNumber.from_string(phone)
+            validate_international_phonenumber(phone_number)
+        except NumberParseException:
+            raise ValidationError(
+                _("The phone number entered is not valid."), code="invalid_phone_number"
+            )
+
         return phone
 
     def clean_password(self, password, user=None):
