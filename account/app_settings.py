@@ -91,6 +91,20 @@ class AppSettings(object):
         return self._setting("PASSWORD_RESET_SERIALIZER", PasswordResetSerializer)
 
     @property
+    def PASSWORD_CHANGE_SERIALIZER(self):
+        from .serializers import PasswordChangeSerializer
+
+        return self._setting("PASSWORD_CHANGE_SERIALIZER", PasswordChangeSerializer)
+
+    @property
+    def OLD_PASSWORD_FIELD_ENABLED(self):
+        return self._setting("OLD_PASSWORD_FIELD_ENABLED", False)
+
+    @property
+    def LOGOUT_ON_PASSWORD_CHANGE(self):
+        return self._setting("LOGOUT_ON_PASSWORD_CHANGE", False)
+
+    @property
     def JWT_SERIALIZER(self):
         from .serializers import JWTSerializer
 
@@ -250,7 +264,7 @@ class AppSettings(object):
         """
         Send JWT to client upon verification
         """
-        return self._setting("LOGIN_UPON_VERIFICATION", True)
+        return self._setting("LOGIN_UPON_VERIFICATION", False)
 
     @property
     def LOGIN_ATTEMPTS_LIMIT(self):
@@ -342,6 +356,34 @@ class AppSettings(object):
     @property
     def JWT_AUTH_HTTPONLY(self):
         return self._setting("JWT_AUTH_HTTPONLY", False)
+
+    @property
+    def TWILIO_ACCOUNT_SID(self):
+        return self._setting("TWILIO_ACCOUNT_SID", None)
+
+    @property
+    def TWILIO_AUTH_TOKEN(self):
+        return self._setting("TWILIO_AUTH_TOKEN", None)
+
+    @property
+    def TWILIO_PHONE_NUMBER(self):
+        return self._setting("TWILIO_PHONE_NUMBER", None)
+
+    @property
+    def DEV_PRINT_SMS(self):
+        return self._setting("DEV_PRINT_SMS", True)
+
+    @property
+    def SMS_VERIFICATION_MESSAGE(self):
+        default_msg = f"Your {self.SITE_NAME} verification code is: <otp_code>"
+        return self._setting("SMS_VERIFICATION_MESSAGE", default_msg)
+
+    @property
+    def SMS_PASSWORD_RESET_MESSAGE(self):
+        default_msg = (
+            f"Your {self.SITE_NAME} security code to reset password is: <otp_code>"
+        )
+        return self._setting("SMS_PASSWORD_RESET_MESSAGE", default_msg)
 
 
 app_settings = AppSettings()

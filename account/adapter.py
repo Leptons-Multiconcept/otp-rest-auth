@@ -283,4 +283,26 @@ class DefaultAccountAdapter(object):
         self.send_mail(email_template, totp.user.email, ctx)
 
     def send_otp_to_phone(self, totp):
-        pass
+        from twilio.rest import Client
+        from .models import TOTP
+
+        sms_msg = app_settings.SMS_VERIFICATION_MESSAGE
+        if totp.purpose == TOTP.PURPOSE_PASSWORD_RESET:
+            sms_msg = app_settings.SMS_PASSWORD_RESET_MESSAGE
+
+        if "<otp_code>" in sms_msg:
+            sms_msg = sms_msg.replace("<otp_code>", str(totp.otp))
+        else:
+            sms_msg = f"{sms_msg} {totp.otp}"
+
+        if app_settings.DEV_PRINT_SMS:
+            print(f"[SMS] {sms_msg}")
+            return
+
+        client = Client(app_settings.TWILIO_ACCOUNT_SID, app_settings.TWILIO_AUTH_TOKEN)
+        message = client.messages.create(
+            body=sms_msg,
+            from_=app_settings.TWILIO_PHONE_NUMBER,
+            to=getattr(totp.user, app_settings.USER_MODEL_PHONE_FIELD),
+        )
+        return message.sid
