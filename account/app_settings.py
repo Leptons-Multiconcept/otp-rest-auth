@@ -31,7 +31,8 @@ class AppSettings(object):
         USERNAME = "username"
 
     def _setting(self, attr, default):
-        return getattr(settings, attr, default)
+        otp_rest_auth_settings = getattr(settings, "OTP_REST_AUTH", {})
+        return otp_rest_auth_settings.get(attr, default)
 
     @property
     def VERIFICATION_TYPE(self):
