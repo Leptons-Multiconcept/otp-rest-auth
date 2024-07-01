@@ -5,7 +5,6 @@ from django.contrib.auth import get_user_model, authenticate
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 from .app_settings import app_settings
-from .adapter import DefaultAccountAdapter
 from .models import Account, TOTP
 from .otp_ops import verify_otp, validate_otp
 from .utils import (
@@ -17,7 +16,7 @@ from .utils import (
 
 
 UserModel = get_user_model()
-adapter = DefaultAccountAdapter()
+adapter = app_settings.ADAPTER()
 
 
 class RegisterSerializer(serializers.Serializer):

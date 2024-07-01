@@ -3,9 +3,8 @@ from django.utils import timezone
 from . import signals
 from .models import TOTP
 from .app_settings import app_settings
-from .adapter import DefaultAccountAdapter
 
-adapter = DefaultAccountAdapter()
+adapter = app_settings.ADAPTER()
 
 
 def validate_otp(otp: int, purpose: str):

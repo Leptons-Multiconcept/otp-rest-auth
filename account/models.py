@@ -6,9 +6,9 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 
 from .app_settings import app_settings
-from .adapter import DefaultAccountAdapter
 
-adapter = DefaultAccountAdapter()
+
+adapter = app_settings.ADAPTER()
 
 
 class Account(models.Model):

@@ -67,6 +67,12 @@ class AppSettings(object):
         )
 
     @property
+    def ADAPTER(self):
+        from .adapter import DefaultAccountAdapter
+
+        return self._setting("ADAPTER", DefaultAccountAdapter)
+
+    @property
     def PASSWORD_RESET_OTP_RECIPIENTS(self):
         """
         Where to send password reset OTP to. Phone, Email, or both.
