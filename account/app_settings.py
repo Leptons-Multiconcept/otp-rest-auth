@@ -10,6 +10,28 @@ class AppSettings(object):
         - Same for EMAIL
     """
 
+    def __init__(self):
+        if self.VERIFICATION_TYPE is self.AccountVerificationType.NONE:
+            assert (
+                self.VERIFICATION_REQUIRED is False
+            ), "VERIFICATION_REQUIRED must be False when VERIFICATION_TYPE is set to None"
+
+        if self.VERIFICATION_TYPE == self.AccountVerificationType.ACCOUNT:
+            assert (
+                self.PHONE_REQUIRED and self.EMAIL_REQUIRED
+            ), "Both PHONE and EMAIL must be required for Account verification"
+            assert (
+                self.UNIQUE_PHONE and self.UNIQUE_EMAIL
+            ), "Both PHONE and EMAIL must be unique for Account verification"
+
+        if self.VERIFICATION_TYPE == "Phone":
+            assert self.PHONE_REQUIRED, "PHONE must be required for Phone verification"
+            assert self.UNIQUE_PHONE, "PHONE must be unique for Phone verification"
+
+        if self.VERIFICATION_TYPE == "Email":
+            assert self.EMAIL_REQUIRED, "EMAIL must be required for Email verification"
+            assert self.EMAIL_UNIQUE, "EMAIL must be unique for Email verification"
+
     class AccountVerificationType:
         # After signing up, keep the user account inactive until the account
         # is verified. An account can be verified and Email and Phone will be
@@ -57,6 +79,7 @@ class AppSettings(object):
 
     @property
     def AUTHENTICATION_METHODS(self):
+        """Fields a user can sign in with."""
         return self._setting(
             "AUTHENTICATION_METHOD",
             (
@@ -81,7 +104,7 @@ class AppSettings(object):
 
     @property
     def PASSWORD_RESET_OTP_EXPIRY_TIME(self):
-        return self._setting("PASSWORD_RESET_OTP_EXPIRY_TIME", 3360)
+        return self._setting("PASSWORD_RESET_OTP_EXPIRY_TIME", 90)
 
     @property
     def PASSWORD_RESET_CONFIRM_SERIALIZER(self):
@@ -106,10 +129,6 @@ class AppSettings(object):
     @property
     def OLD_PASSWORD_FIELD_ENABLED(self):
         return self._setting("OLD_PASSWORD_FIELD_ENABLED", False)
-
-    @property
-    def LOGOUT_ON_PASSWORD_CHANGE(self):
-        return self._setting("LOGOUT_ON_PASSWORD_CHANGE", False)
 
     @property
     def JWT_SERIALIZER(self):
@@ -242,7 +261,7 @@ class AppSettings(object):
 
     @property
     def OTP_EXPIRY_TIME(self):
-        return self._setting("OTP_EXPIRY_TIME", 3360)
+        return self._setting("OTP_EXPIRY_TIME", 90)
 
     @property
     def PASSWORD_MIN_LENGTH(self):
