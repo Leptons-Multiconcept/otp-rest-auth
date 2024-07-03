@@ -419,7 +419,3 @@ class PasswordChangeSerializer(serializers.Serializer):
 
     def save(self):
         self.set_password_form.save()
-        if not self.logout_on_password_change:
-            from django.contrib.auth import update_session_auth_hash
-
-            update_session_auth_hash(self.request, self.user)
