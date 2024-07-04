@@ -87,8 +87,9 @@ class TOTP(models.Model):
 
         # set `otp``
         otp_len = app_settings.OTP_LENGTH
-        otp = "".join([str(random.randint(0, 9)) for _ in range(otp_len)])
-        self.otp = int(otp)
+        first_digit = str(random.randint(1, 9))
+        digits = "".join([str(random.randint(0, 9)) for _ in range(otp_len - 1)])
+        self.otp = int(first_digit + digits)
 
         # set `invalidated_at``
         if not self.is_valid and not self.invalidated_at:
