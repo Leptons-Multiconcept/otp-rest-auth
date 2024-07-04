@@ -68,7 +68,7 @@ class TOTP(models.Model):
 
     @property
     def is_expired(self):
-        return self.created_at < self.expiration_time
+        return timezone.now() > self.expiration_time
 
     def clean(self):
         if self.pk:
@@ -97,11 +97,11 @@ class TOTP(models.Model):
         # set `expiration_time`
         if not self.expiration_time:
             if self.purpose == self.PURPOSE_PASSWORD_RESET:
-                self.expiration_time = timezone.now() - timedelta(
+                self.expiration_time = timezone.now() + timedelta(
                     seconds=app_settings.PASSWORD_RESET_OTP_EXPIRY_TIME
                 )
             else:
-                self.expiration_time = timezone.now() - timedelta(
+                self.expiration_time = timezone.now() + timedelta(
                     seconds=app_settings.OTP_EXPIRY_TIME
                 )
 
