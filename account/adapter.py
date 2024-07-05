@@ -32,30 +32,6 @@ class DefaultAccountAdapter(object):
         "unknown_email": _("The email address is not assigned to any user account"),
     }
 
-    """
-    def stash_verified_email(self, request, email):
-        request.session["account_verified_email"] = email
-
-    def unstash_verified_email(self, request):
-        ret = request.session.get("account_verified_email")
-        request.session["account_verified_email"] = None
-        return ret
-
-    def stash_verified_phone(self, request, phone):
-        request.session["account_verified_phone"] = phone
-
-    def unstash_verified_phone(self, request):
-        ret = request.session.get("account_verified_phone")
-        request.session["account_verified_phone"] = None
-        return ret
-
-    def stash_user(self, request, user):
-        request.session["account_user"] = user
-
-    def unstash_user(self, request):
-        return request.session.pop("account_user", None)
-    """
-
     def new_user(self, request):
         """
         Instantiates a new User instance.
