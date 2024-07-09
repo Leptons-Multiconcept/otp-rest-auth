@@ -162,6 +162,15 @@ SIMPLE_JWT = {
     "UPDATE_LAST_LOGIN": True,
 }
 
+REST_FRAMEWORK = {
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.ScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "otp_auth_register": "1/day",
+        "otp_auth_login": "2/day",
+    },
+}
 
 # Email
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
