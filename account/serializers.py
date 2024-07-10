@@ -194,7 +194,6 @@ class JWTSerializer(serializers.Serializer):
         """
         JWTUserDetailsSerializer = app_settings.USER_DETAILS_SERIALIZER
 
-        print("USER USER: ", obj)
         user_data = JWTUserDetailsSerializer(obj["user"], context=self.context).data
         return user_data
 
