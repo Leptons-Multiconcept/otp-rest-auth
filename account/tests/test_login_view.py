@@ -234,3 +234,20 @@ class LoginViewTests(TestCase):
         self.assertEqual(
             response.data["non_field_errors"][0], "Account is not verified."
         )
+
+    @override_settings(
+        OTP_REST_AUTH={
+            "VERIFICATION_REQUIRED": False,
+            "VERIFICATION_TYPE": app_settings.AccountVerificationType.ACCOUNT,
+        }
+    )
+    def test_post_unverified_account_with_verification_not_required(self):
+        self.account.is_verified = False
+        self.account.save()
+
+        data = {"username": "testuser", "password": "password"}
+        response = self.client.post(self.url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("access", response.data)
+        self.assertIn("refresh", response.data)
