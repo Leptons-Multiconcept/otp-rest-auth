@@ -12,10 +12,7 @@ adapter = app_settings.ADAPTER()
 
 
 class Account(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-    )
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     is_verified = models.BooleanField(default=False)
     phone_verified = models.BooleanField(default=False)
