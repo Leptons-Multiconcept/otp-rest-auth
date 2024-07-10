@@ -47,8 +47,6 @@ class ResendOTPViewTests(TestCase):
 
         with patch.object(ResendOTPView, "get_serializer", return_value=serializer):
             response = self.view(request)
-            print("RESPONSE: ", response.data)
-            print("USER DETAIL: ", self.user.email, self.user.phone)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             mock_send_verification_otp.assert_called_once()
 
