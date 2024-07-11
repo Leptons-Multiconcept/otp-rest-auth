@@ -10,8 +10,7 @@ from django.test.utils import override_settings
 from account.models import Account
 from account.views import LoginView
 from account.app_settings import app_settings
-# from account.serializers import LoginSerializer
-# from account.utils import get_login_response_data, set_jwt_cookies
+
 
 User = get_user_model()
 
@@ -251,3 +250,21 @@ class LoginViewTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("access", response.data)
         self.assertIn("refresh", response.data)
+
+    @override_settings(
+        OTP_REST_AUTH={
+            "VERIFICATION_REQUIRED": False,
+            "VERIFICATION_TYPE": app_settings.AccountVerificationType.ACCOUNT,
+            "AUTHENTICATION_METHODS": (
+                app_settings.AuthenticationMethods.EMAIL,
+                app_settings.AuthenticationMethods.USERNAME,
+            ),
+        }
+    )
+    def test_login_with_unavailable_authentication_type(self):
+        data = {"phone": "+2348145640915", "password": "password"}
+        response = self.client.post(self.url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotIn("access", response.data)
+        self.assertNotIn("refresh", response.data)
