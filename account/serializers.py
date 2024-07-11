@@ -26,12 +26,18 @@ class RegisterSerializer(serializers.Serializer):
         min_length=app_settings.USERNAME_MIN_LENGTH,
         required=app_settings.USERNAME_REQUIRED,
     )
-    phone = serializers.CharField(required=app_settings.EMAIL_REQUIRED)
+    phone = serializers.CharField()
     email = serializers.EmailField(required=app_settings.PHONE_REQUIRED)
     password1 = serializers.CharField(write_only=True)
-    password2 = serializers.CharField(
-        write_only=True, required=app_settings.SIGNUP_PASSWORD_ENTER_TWICE
-    )
+    password2 = serializers.CharField(write_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if not app_settings.SIGNUP_PASSWORD_ENTER_TWICE:
+            self.fields.pop("password1")
+            self.fields.pop("password2")
+            self.fields["password"] = serializers.CharField(write_only=True)
 
     def validate_username(self, username):
         username = adapter.clean_username(username)
@@ -213,6 +219,25 @@ class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False, allow_blank=True)
     username = serializers.CharField(required=False, allow_blank=True)
     password = serializers.CharField(style={"input_type": "password"})
+
+    def __init__(self, instance=None, data=..., **kwargs):
+        super().__init__(instance, data, **kwargs)
+
+        if (
+            app_settings.AuthenticationMethods.USERNAME
+            not in app_settings.AUTHENTICATION_METHODS
+        ):
+            self.fields.pop("username")
+        if (
+            app_settings.AuthenticationMethods.PHONE
+            not in app_settings.AUTHENTICATION_METHODS
+        ):
+            self.fields.pop("phone")
+        if (
+            app_settings.AuthenticationMethods.PHONE
+            not in app_settings.AUTHENTICATION_METHODS
+        ):
+            self.fields.pop("email")
 
     def authenticate(self, **kwargs):
         return authenticate(self.context["request"], **kwargs)
