@@ -379,6 +379,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
 
 class PasswordChangeSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
     old_password = serializers.CharField(max_length=128)
     new_password1 = serializers.CharField(max_length=128)
     new_password2 = serializers.CharField(max_length=128)
@@ -394,6 +395,9 @@ class PasswordChangeSerializer(serializers.Serializer):
 
         if not self.old_password_field_enabled:
             self.fields.pop("old_password")
+
+        if not self.logout_on_password_change:
+            self.fields.pop("refresh")
 
         self.request = self.context.get("request")
         self.user = getattr(self.request, "user", None)
