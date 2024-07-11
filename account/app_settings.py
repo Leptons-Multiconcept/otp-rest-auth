@@ -81,7 +81,7 @@ class AppSettings(object):
     def AUTHENTICATION_METHODS(self):
         """Fields a user can sign in with."""
         return self._setting(
-            "AUTHENTICATION_METHOD",
+            "AUTHENTICATION_METHODS",
             (
                 self.AuthenticationMethods.PHONE,
                 self.AuthenticationMethods.EMAIL,
