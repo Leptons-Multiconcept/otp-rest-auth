@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.forms import SetPasswordForm
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model, authenticate
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 from .app_settings import app_settings
@@ -252,6 +253,11 @@ class LoginSerializer(serializers.Serializer):
     @staticmethod
     def validate_verification_type_status(user):
         user_account = Account.objects.filter(user=user).first()
+        if not user_account:
+            raise ObjectDoesNotExist(
+                "The related Account instance for this user does not exist."
+            )
+
         if app_settings.VERIFICATION_REQUIRED:
             verification_type = app_settings.VERIFICATION_TYPE
             if (
