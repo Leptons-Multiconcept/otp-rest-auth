@@ -81,7 +81,7 @@ class AppSettings(object):
     def AUTHENTICATION_METHODS(self):
         """Fields a user can sign in with."""
         return self._setting(
-            "AUTHENTICATION_METHOD",
+            "AUTHENTICATION_METHODS",
             (
                 self.AuthenticationMethods.PHONE,
                 self.AuthenticationMethods.EMAIL,
@@ -330,6 +330,10 @@ class AppSettings(object):
             # NOTE: Login is already protected via `LOGIN_ATTEMPTS_LIMIT`
         }
         return self._setting("RATE_LIMITS", dflt)
+
+    @property
+    def LOGOUT_ON_PASSWORD_CHANGE(self):
+        return self._setting("LOGOUT_ON_PASSWORD_CHANGE", False)
 
     @property
     def SIGNUP_PASSWORD_VERIFICATION(self):

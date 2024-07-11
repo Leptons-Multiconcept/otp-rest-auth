@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.forms import SetPasswordForm
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model, authenticate
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 from .app_settings import app_settings
@@ -25,12 +26,18 @@ class RegisterSerializer(serializers.Serializer):
         min_length=app_settings.USERNAME_MIN_LENGTH,
         required=app_settings.USERNAME_REQUIRED,
     )
-    phone = serializers.CharField(required=app_settings.EMAIL_REQUIRED)
+    phone = serializers.CharField()
     email = serializers.EmailField(required=app_settings.PHONE_REQUIRED)
     password1 = serializers.CharField(write_only=True)
-    password2 = serializers.CharField(
-        write_only=True, required=app_settings.SIGNUP_PASSWORD_ENTER_TWICE
-    )
+    password2 = serializers.CharField(write_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if not app_settings.SIGNUP_PASSWORD_ENTER_TWICE:
+            self.fields.pop("password1")
+            self.fields.pop("password2")
+            self.fields["password"] = serializers.CharField(write_only=True)
 
     def validate_username(self, username):
         username = adapter.clean_username(username)
@@ -194,7 +201,6 @@ class JWTSerializer(serializers.Serializer):
         """
         JWTUserDetailsSerializer = app_settings.USER_DETAILS_SERIALIZER
 
-        print("USER USER: ", obj)
         user_data = JWTUserDetailsSerializer(obj["user"], context=self.context).data
         return user_data
 
@@ -213,6 +219,25 @@ class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False, allow_blank=True)
     username = serializers.CharField(required=False, allow_blank=True)
     password = serializers.CharField(style={"input_type": "password"})
+
+    def __init__(self, instance=None, data=..., **kwargs):
+        super().__init__(instance, data, **kwargs)
+
+        if (
+            app_settings.AuthenticationMethods.USERNAME
+            not in app_settings.AUTHENTICATION_METHODS
+        ):
+            self.fields.pop("username")
+        if (
+            app_settings.AuthenticationMethods.PHONE
+            not in app_settings.AUTHENTICATION_METHODS
+        ):
+            self.fields.pop("phone")
+        if (
+            app_settings.AuthenticationMethods.PHONE
+            not in app_settings.AUTHENTICATION_METHODS
+        ):
+            self.fields.pop("email")
 
     def authenticate(self, **kwargs):
         return authenticate(self.context["request"], **kwargs)
@@ -253,6 +278,11 @@ class LoginSerializer(serializers.Serializer):
     @staticmethod
     def validate_verification_type_status(user):
         user_account = Account.objects.filter(user=user).first()
+        if not user_account:
+            raise ObjectDoesNotExist(
+                "The related Account instance for this user does not exist."
+            )
+
         if app_settings.VERIFICATION_REQUIRED:
             verification_type = app_settings.VERIFICATION_TYPE
             if (
@@ -374,6 +404,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
 
 class PasswordChangeSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
     old_password = serializers.CharField(max_length=128)
     new_password1 = serializers.CharField(max_length=128)
     new_password2 = serializers.CharField(max_length=128)
@@ -389,6 +420,9 @@ class PasswordChangeSerializer(serializers.Serializer):
 
         if not self.old_password_field_enabled:
             self.fields.pop("old_password")
+
+        if not self.logout_on_password_change:
+            self.fields.pop("refresh")
 
         self.request = self.context.get("request")
         self.user = getattr(self.request, "user", None)

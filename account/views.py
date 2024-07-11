@@ -351,7 +351,6 @@ class LogoutView(GenericAPIView):
                         "Token is blacklisted" in error.args
                         or "Token is invalid or expired" in error.args
                     ):
-                        print("TOKEN INVALID")
                         response.data = {"detail": _(error.args[0])}
                         response.status_code = status.HTTP_401_UNAUTHORIZED
                     else:
@@ -424,4 +423,13 @@ class PasswordChangeView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({"detail": _("New password has been saved.")})
+
+        resp_detail = {"detail": "New password has been saved."}
+
+        if app_settings.LOGOUT_ON_PASSWORD_CHANGE:
+            logout_view = LogoutView()
+            response = logout_view.logout(request)
+
+            resp_detail["logout_detail"] = response.data["detail"]
+
+        return Response(resp_detail)
