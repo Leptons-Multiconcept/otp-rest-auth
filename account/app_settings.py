@@ -332,6 +332,10 @@ class AppSettings(object):
         return self._setting("RATE_LIMITS", dflt)
 
     @property
+    def LOGOUT_ON_PASSWORD_CHANGE(self):
+        return self._setting("LOGOUT_ON_PASSWORD_CHANGE", False)
+
+    @property
     def SIGNUP_PASSWORD_VERIFICATION(self):
         """
         Signup password verification
