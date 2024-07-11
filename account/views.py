@@ -351,7 +351,6 @@ class LogoutView(GenericAPIView):
                         "Token is blacklisted" in error.args
                         or "Token is invalid or expired" in error.args
                     ):
-                        print("TOKEN INVALID")
                         response.data = {"detail": _(error.args[0])}
                         response.status_code = status.HTTP_401_UNAUTHORIZED
                     else:
