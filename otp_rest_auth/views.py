@@ -1,4 +1,3 @@
-import requests
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth import get_user_model
@@ -12,8 +11,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.generics import CreateAPIView, GenericAPIView, RetrieveUpdateAPIView
-
-from rest_framework.throttling import UserRateThrottle
 
 from .app_settings import app_settings
 from . import signals

@@ -5,8 +5,8 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 from unittest.mock import patch, ANY
 
-from account.models import TOTP
-from account.app_settings import app_settings
+from otp_rest_auth.models import TOTP
+from otp_rest_auth.app_settings import app_settings
 
 User = get_user_model()
 

@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from account.app_settings import app_settings
+from otp_rest_auth.app_settings import app_settings
 
 User = get_user_model()
 

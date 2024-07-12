@@ -7,9 +7,9 @@ from unittest.mock import patch
 from unittest import skip
 from django.test.utils import override_settings
 
-from account.models import Account
-from account.views import LoginView
-from account.app_settings import app_settings
+from otp_rest_auth.models import Account
+from otp_rest_auth.views import LoginView
+from otp_rest_auth.app_settings import app_settings
 
 
 User = get_user_model()

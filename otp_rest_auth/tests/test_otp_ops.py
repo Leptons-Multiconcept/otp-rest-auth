@@ -5,9 +5,9 @@ from django.contrib.auth import get_user_model
 from django.test.utils import override_settings
 from django.utils import timezone
 
-from account.models import TOTP
-from account.app_settings import app_settings
-from account.otp_ops import validate_otp, verify_otp, send_verification_otp
+from otp_rest_auth.models import TOTP
+from otp_rest_auth.app_settings import app_settings
+from otp_rest_auth.otp_ops import validate_otp, verify_otp, send_verification_otp
 
 User = get_user_model()
 adapter = app_settings.ADAPTER()

@@ -2,8 +2,8 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.test.utils import override_settings
 
-from account.app_settings import app_settings
-from account.auth_backends import AuthenticationBackend
+from otp_rest_auth.app_settings import app_settings
+from otp_rest_auth.auth_backends import AuthenticationBackend
 
 
 class AuthenticationBackendTests(TestCase):

@@ -1,35 +1,39 @@
-"""
-URL configuration for otp_rest_auth project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-
-from django.contrib import admin
 from django.urls import path, include
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularRedocView,
-    SpectacularSwaggerView,
+
+from .views import (
+    RegisterView,
+    ResendOTPView,
+    ResetPasswordView,
+    LoginView,
+    LogoutView,
+    UserDetailsView,
+    VerifyAccountView,
+    VerifyEmailView,
+    VerifyPhoneView,
+    PasswordChangeView,
+    PasswordResetConfirmView,
 )
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("register/", include("account.urls")),
-    path("schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("", RegisterView.as_view(), name="otp_rest_register"),
+    path("login/", LoginView.as_view(), name="otp_rest_login"),
+    path("logout/", LogoutView.as_view(), name="otp_rest_logout"),
+    path("user/", UserDetailsView.as_view(), name="otp_rest_user_details"),
+    path("resend_otp/", ResendOTPView.as_view(), name="otp_rest_resend_otp"),
+    path("verify/phone", VerifyPhoneView.as_view(), name="otp_rest_verify_phone"),
+    path("verify/email", VerifyEmailView.as_view(), name="otp_rest_verify_email"),
+    path("verify/account", VerifyAccountView.as_view(), name="otp_rest_verify_account"),
     path(
-        "api-docs/",
-        SpectacularSwaggerView.as_view(url_name="schema"),
-        name="swagger-ui",
+        "password/reset/", ResetPasswordView.as_view(), name="otp_rest_password_reset"
+    ),
+    path(
+        "password/reset/confirm/",
+        PasswordResetConfirmView.as_view(),
+        name="otp_rest_password_reset_confirm",
+    ),
+    path(
+        "password/change/",
+        PasswordChangeView.as_view(),
+        name="otp_rest_password_change",
     ),
 ]

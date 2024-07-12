@@ -6,10 +6,10 @@ from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.test.utils import override_settings
 
-from account.app_settings import app_settings
-from account.models import TOTP
-from account.serializers import OTPSerializer
-from account.views import VerifyAccountView, VerifyEmailView, VerifyPhoneView
+from otp_rest_auth.app_settings import app_settings
+from otp_rest_auth.models import TOTP
+from otp_rest_auth.serializers import OTPSerializer
+from otp_rest_auth.views import VerifyAccountView, VerifyEmailView, VerifyPhoneView
 
 User = get_user_model()
 
