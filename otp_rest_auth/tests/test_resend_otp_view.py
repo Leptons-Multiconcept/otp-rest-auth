@@ -4,10 +4,10 @@ from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import MethodNotAllowed
 from unittest.mock import patch, MagicMock
-from account.views import ResendOTPView
-from account.models import Account, TOTP
-from account.serializers import ResendOTPSerializer
-from account import app_settings
+from otp_rest_auth.views import ResendOTPView
+from otp_rest_auth.models import Account, TOTP
+from otp_rest_auth.serializers import ResendOTPSerializer
+from otp_rest_auth import app_settings
 
 User = get_user_model()
 

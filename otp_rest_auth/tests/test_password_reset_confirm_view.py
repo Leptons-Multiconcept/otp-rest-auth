@@ -4,9 +4,9 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 from unittest.mock import patch, MagicMock
-from account.models import TOTP
-from account import app_settings
-from account.otp_ops import verify_otp, validate_otp
+from otp_rest_auth.models import TOTP
+from otp_rest_auth import app_settings
+from otp_rest_auth.otp_ops import verify_otp, validate_otp
 
 User = get_user_model()
 

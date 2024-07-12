@@ -6,8 +6,8 @@ from django.contrib.auth import get_user_model
 from django.test.utils import override_settings
 from django.utils.translation import gettext_lazy as _
 
-from account.views import RegisterView
-from account.app_settings import app_settings
+from otp_rest_auth.views import RegisterView
+from otp_rest_auth.app_settings import app_settings
 
 User = get_user_model()
 

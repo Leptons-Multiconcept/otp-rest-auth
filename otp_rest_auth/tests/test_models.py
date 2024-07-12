@@ -5,8 +5,8 @@ from django.test.utils import override_settings
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
-from account.models import Account, TOTP
-from account.app_settings import app_settings
+from otp_rest_auth.models import Account, TOTP
+from otp_rest_auth.app_settings import app_settings
 
 
 User = get_user_model()

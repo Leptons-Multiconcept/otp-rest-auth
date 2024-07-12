@@ -6,10 +6,10 @@ from django.test.utils import override_settings
 from django.test import TestCase, RequestFactory
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from account.models import Account, TOTP
-from account.serializers import JWTSerializer
-from account.app_settings import app_settings
-from account.views import get_login_response_data, verify
+from otp_rest_auth.models import Account, TOTP
+from otp_rest_auth.serializers import JWTSerializer
+from otp_rest_auth.app_settings import app_settings
+from otp_rest_auth.views import get_login_response_data, verify
 
 User = get_user_model()
 

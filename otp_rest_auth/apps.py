@@ -6,4 +6,4 @@ class AccountConfig(AppConfig):
     name = "account"
 
     def ready(self):
-        import account.signals
+        import otp_rest_auth.signals
