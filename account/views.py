@@ -11,7 +11,7 @@ from rest_framework.exceptions import MethodNotAllowed
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.generics import CreateAPIView, GenericAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import CreateAPIView, GenericAPIView
 
 from rest_framework.throttling import UserRateThrottle
 
@@ -433,29 +433,3 @@ class PasswordChangeView(GenericAPIView):
             resp_detail["logout_detail"] = response.data["detail"]
 
         return Response(resp_detail)
-
-
-class UserDetailsView(RetrieveUpdateAPIView):
-    """
-    Reads and updates UserModel fields
-    Accepts GET, PUT, PATCH methods.
-
-    Default accepted fields: username, first_name, last_name
-    Default display fields: pk, username, email, first_name, last_name
-    Read-only fields: pk, email
-
-    Returns UserModel fields.
-    """
-
-    serializer_class = app_settings.USER_DETAILS_SERIALIZER
-    permission_classes = (IsAuthenticated,)
-
-    def get_object(self):
-        return self.request.user
-
-    def get_queryset(self):
-        """
-        Adding this method since it is sometimes called when using
-        django-rest-swagger
-        """
-        return get_user_model().objects.none()

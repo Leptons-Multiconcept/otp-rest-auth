@@ -18,7 +18,6 @@ from .utils import (
 
 UserModel = get_user_model()
 adapter = app_settings.ADAPTER()
-from .app_settings import app_settings
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -175,15 +174,15 @@ class UserDetailsSerializer(serializers.ModelSerializer):
             extra_fields.append(UserModel.USERNAME_FIELD)
         if hasattr(UserModel, "EMAIL_FIELD"):
             extra_fields.append(UserModel.EMAIL_FIELD)
-        if hasattr(UserModel, app_settings.USER_MODEL_PHONE_FIELD):
-            extra_fields.append(app_settings.USER_MODEL_PHONE_FIELD)
+        if hasattr(UserModel, "PHONE_FIELD"):
+            extra_fields.append(UserModel.PHONE_FIELD)
         if hasattr(UserModel, "first_name"):
             extra_fields.append("first_name")
         if hasattr(UserModel, "last_name"):
             extra_fields.append("last_name")
         model = UserModel
         fields = ("pk", *extra_fields)
-        read_only_fields = ("email", "phone")
+        read_only_fields = ("email",)
 
 
 class JWTSerializer(serializers.Serializer):
