@@ -1,5 +1,4 @@
 include LICENSE
 include README.md
 recursive-include docs *
-recursive-include templates *
 recursive-include otp_rest_auth *
