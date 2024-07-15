@@ -3,6 +3,7 @@ from django.contrib.auth.forms import SetPasswordForm
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model, authenticate
 from django.core.exceptions import ObjectDoesNotExist
+from phonenumber_field.serializerfields import PhoneNumberField
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 from .app_settings import app_settings
@@ -453,3 +454,17 @@ class PasswordChangeSerializer(serializers.Serializer):
 
     def save(self):
         self.set_password_form.save()
+
+class InvokeChangeEmailOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+class InvokeChangePhoneOTPSerializer(serializers.Serializer):
+    phone = PhoneNumberField()
+
+class ChangeEmailSerializer(serializers.Serializer):
+    otp = serializers.IntegerField()
+    new_email = serializers.EmailField()
+
+class ChangePhoneSerializer(serializers.Serializer):
+    otp = serializers.IntegerField()
+    new_phone = PhoneNumberField()

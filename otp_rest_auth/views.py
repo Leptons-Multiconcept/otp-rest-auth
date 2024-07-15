@@ -16,7 +16,14 @@ from .app_settings import app_settings
 from . import signals
 from .models import Account, TOTP
 from .otp_ops import send_verification_otp, verify_otp
-from .serializers import ResendOTPSerializer, LogoutSerializer
+from .serializers import (
+    ResendOTPSerializer,
+    LogoutSerializer,
+    ChangeEmailSerializer,
+    ChangePhoneSerializer,
+    InvokeChangeEmailOTPSerializer,
+    InvokeChangePhoneOTPSerializer,
+)
 from .jwt_auth import get_tokens_for_user, set_jwt_cookies, unset_jwt_cookies
 
 
@@ -65,7 +72,7 @@ def get_login_response_data(user, context):
     return serializer.data
 
 
-def verify(serializer, request, totp_purpose) -> Response:
+def verify(serializer, request, totp_purpose, login=True) -> Response:
     """
     If OTP is valid set user.is_active and the respective
     app_settings.VERIFICATION_TYPE of the user account to True.
@@ -89,7 +96,7 @@ def verify(serializer, request, totp_purpose) -> Response:
     user_account.save()
 
     response = Response(status=status.HTTP_200_OK)
-    if app_settings.LOGIN_UPON_VERIFICATION:
+    if login and app_settings.LOGIN_UPON_VERIFICATION:
         data = get_login_response_data(totp.user, {"request": request})
         response.data = data
 
@@ -456,3 +463,94 @@ class UserDetailsView(RetrieveUpdateAPIView):
         django-rest-swagger
         """
         return get_user_model().objects.none()
+
+class InvokeChangeEmailOTPView(GenericAPIView):
+    serializer_class = InvokeChangeEmailOTPSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = UserModel.objects.ge(email=serializer.validated_data["email"])
+        
+        response = Response({"detail": _("Verification OTP sent.")})
+        
+        if not user:
+            return response
+        
+        totp = TOTP.objects.create(user=user, purpose=TOTP.PURPOSE_EMAIL_VERIFICATION)
+        send_verification_otp(totp)
+
+        return response
+    
+class InvokeChangePhoneOTPView(GenericAPIView):
+    serializer_class = InvokeChangePhoneOTPSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = UserModel.objects.ge(email=serializer.validated_data["phone"])
+        
+        response = Response({"detail": _("Verification OTP sent.")})
+        
+        if not user:
+            return response
+        
+        totp = TOTP.objects.create(user=user, purpose=TOTP.PURPOSE_PHONE_VERIFICATION)
+        send_verification_otp(totp)
+
+        return response
+
+class ChangeEmailView(GenericAPIView):
+    serializer_class = ChangeEmailSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        otp = serializer.validated_data["otp"]
+        success, totp = verify_otp(otp, TOTP.PURPOSE_EMAIL_VERIFICATION)
+        if not success:
+            return Response({"detail": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user_account = Account.objects.filter(user=totp.user).first()
+        if totp.user and not user_account:
+            # Create account for user. The user may have logged in via some social auth.
+            user_account = Account.objects.create(user=totp.user)
+        
+        if not user_account.email_verified:
+            user_account.email_verified = True
+
+        totp.user.is_active = True
+
+        totp.user.save()
+        user_account.save()
+            
+class ChangePhoneView(GenericAPIView):
+    serializer_class = ChangePhoneSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        otp = serializer.validated_data["otp"]
+        success, totp = verify_otp(otp, TOTP.PURPOSE_PHONE_VERIFICATION)
+        if not success:
+            return Response({"detail": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user_account = Account.objects.filter(user=totp.user).first()
+        if totp.user and not user_account:
+            # Create account for user. The user may have logged in via some social auth.
+            user_account = Account.objects.create(user=totp.user)
+        
+        if not user_account.phone_verified:
+            user_account.phone_verified = True  
+
+        totp.user.is_active = True
+
+        totp.user.save()
+        user_account.save()
+            

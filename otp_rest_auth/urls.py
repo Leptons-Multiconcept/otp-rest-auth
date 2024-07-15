@@ -8,6 +8,8 @@ from .views import (
     LogoutView,
     UserDetailsView,
     VerifyAccountView,
+    ChangeEmailView,
+    ChangePhoneView,
     VerifyEmailView,
     VerifyPhoneView,
     PasswordChangeView,
@@ -20,9 +22,11 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="otp_rest_logout"),
     path("user/", UserDetailsView.as_view(), name="otp_rest_user_details"),
     path("resend_otp/", ResendOTPView.as_view(), name="otp_rest_resend_otp"),
-    path("verify/phone", VerifyPhoneView.as_view(), name="otp_rest_verify_phone"),
-    path("verify/email", VerifyEmailView.as_view(), name="otp_rest_verify_email"),
-    path("verify/account", VerifyAccountView.as_view(), name="otp_rest_verify_account"),
+    path("change/phone/", ChangePhoneView.as_view(), name="otp_rest_change_phone"),
+    path("change/email/", ChangeEmailView.as_view(), name="otp_rest_change_email"),
+    path("verify/phone/", VerifyPhoneView.as_view(), name="otp_rest_verify_phone"),
+    path("verify/email/", VerifyEmailView.as_view(), name="otp_rest_verify_email"),
+    path("verify/account/", VerifyAccountView.as_view(), name="otp_rest_verify_account"),
     path(
         "password/reset/", ResetPasswordView.as_view(), name="otp_rest_password_reset"
     ),
