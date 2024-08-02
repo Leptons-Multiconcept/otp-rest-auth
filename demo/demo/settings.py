@@ -145,6 +145,13 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.ScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "otp_auth_register": "200/day",
+        "otp_auth_login": "2/day",
+    },
 }
 
 SPECTACULAR_SETTINGS = {
@@ -153,9 +160,6 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
-    "SWAGGER_UI_SETTINGS": {
-        "docExpansion": "none",  # Collapse the tags by default
-    },
 }
 
 # Email
