@@ -17,9 +17,9 @@ from .views import (
 )
 
 urlpatterns = [
-    path("", RegisterView.as_view(), name="otp_rest_register"),
     path("login/", LoginView.as_view(), name="otp_rest_login"),
     path("logout/", LogoutView.as_view(), name="otp_rest_logout"),
+    path("register/", RegisterView.as_view(), name="otp_rest_register"),
     path("user/", UserDetailsView.as_view(), name="otp_rest_user_details"),
     path("resend_otp/", ResendOTPView.as_view(), name="otp_rest_resend_otp"),
     path("change/phone/", ChangePhoneView.as_view(), name="otp_rest_change_phone"),
