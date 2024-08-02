@@ -1,9 +1,9 @@
 from django.apps import AppConfig
 
 
-class AccountConfig(AppConfig):
+class OtpRestAuthConfig(AppConfig):
+    name = "otp_rest_auth"
     default_auto_field = "django.db.models.BigAutoField"
-    name = "account"
 
     def ready(self):
         import otp_rest_auth.signals
