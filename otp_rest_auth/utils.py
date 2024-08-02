@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import FieldDoesNotExist
 
@@ -97,3 +98,13 @@ def get_auth_method_field(auth_method):
             auth_methods[username] = app_settings.USER_MODEL_USERNAME_FIELD
 
     return auth_methods.get(auth_method)
+
+        
+def get_throttle_scope(throttle_key):
+    rest_config = getattr(settings, "REST_FRAMEWORK", None)
+    if rest_config:
+        throttle_rates = rest_config.get("DEFAULT_THROTTLE_RATES", {})
+        scope = throttle_rates.get(throttle_key, None)
+        return throttle_key if scope else ""
+    
+    return ""

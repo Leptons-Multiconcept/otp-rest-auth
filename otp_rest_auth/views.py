@@ -15,6 +15,7 @@ from rest_framework.generics import CreateAPIView, GenericAPIView, RetrieveUpdat
 from .app_settings import app_settings
 from . import signals
 from .models import Account, TOTP
+from . utils import get_throttle_scope
 from .otp_ops import send_verification_otp, verify_otp
 from .serializers import (
     ResendOTPSerializer,
@@ -106,9 +107,12 @@ def verify(serializer, request, totp_purpose, login=True) -> Response:
 
 
 class RegisterView(CreateAPIView):
-    throttle_scope = "otp_auth_register"
     serializer_class = app_settings.REGISTER_SERIALIZER
     permission_classes = app_settings.REGISTER_PERMISSION_CLASSES
+
+    def get_throttles(self):
+        self.throttle_scope = get_throttle_scope("otp_auth_register")
+        return super().get_throttles()
 
     @sensitive_post_parameters_m
     def dispatch(self, *args, **kwargs):
@@ -172,9 +176,12 @@ class RegisterView(CreateAPIView):
 
 
 class VerifyAccountView(views.APIView):
-    throttle_scope = "otp_auth_v_account"
     permission_classes = (AllowAny,)
     allowed_methods = ("POST", "OPTIONS", "HEAD")
+
+    def get_throttles(self):
+        self.throttle_scope = get_throttle_scope("otp_auth_verify_account")
+        return super().get_throttles()
 
     def get_serializer(self, *args, **kwargs):
         return app_settings.OTP_SERIALIZER(*args, **kwargs)
@@ -194,6 +201,10 @@ class VerifyEmailView(views.APIView):
     permission_classes = (AllowAny,)
     allowed_methods = ("POST", "OPTIONS", "HEAD")
 
+    def get_throttles(self):
+        self.throttle_scope = get_throttle_scope("otp_auth_verify_email")
+        return super().get_throttles()
+
     def get_serializer(self, *args, **kwargs):
         return app_settings.OTP_SERIALIZER(*args, **kwargs)
 
@@ -208,9 +219,12 @@ class VerifyEmailView(views.APIView):
 
 
 class VerifyPhoneView(views.APIView):
-    throttle_scope = "otp_auth_v_phone"
     permission_classes = (AllowAny,)
     allowed_methods = ("POST", "OPTIONS", "HEAD")
+
+    def get_throttles(self):
+        self.throttle_scope = get_throttle_scope("otp_auth_verify_phone")
+        return super().get_throttles()
 
     def get_serializer(self, *args, **kwargs):
         return app_settings.OTP_SERIALIZER(*args, **kwargs)
@@ -227,8 +241,11 @@ class VerifyPhoneView(views.APIView):
 
 class ResendOTPView(views.APIView):
     permission_classes = (AllowAny,)
-    throttle_scope = "otp_auth_otp_resend"
     allowed_methods = ("POST", "OPTIONS", "HEAD")
+
+    def get_throttles(self):
+        self.throttle_scope = get_throttle_scope("otp_auth_otp_resend")
+        return super().get_throttles()
 
     def get_serializer(self, *args, **kwargs):
         return ResendOTPSerializer(*args, **kwargs)
@@ -288,8 +305,11 @@ class ResendOTPView(views.APIView):
 
 class LoginView(GenericAPIView):
     permission_classes = (AllowAny,)
-    throttle_scope = "otp_auth_login"
     serializer_class = app_settings.LOGIN_SERIALIZER
+
+    def get_throttles(self):
+        self.throttle_scope = get_throttle_scope("otp_auth_login")
+        return super().get_throttles()
 
     user = None
     access_token = None
@@ -321,7 +341,10 @@ class LogoutView(GenericAPIView):
 
     permission_classes = [IsAuthenticated]
     serializer_class = LogoutSerializer
-    throttle_scope = "otp_auth_logout"
+
+    def get_throttles(self):
+        self.throttle_scope = get_throttle_scope("otp_auth_logout")
+        return super().get_throttles()
 
     def post(self, request, *args, **kwargs):
         self.request = request
@@ -379,7 +402,10 @@ class LogoutView(GenericAPIView):
 class ResetPasswordView(GenericAPIView):
     permission_classes = (AllowAny,)
     serializer_class = app_settings.PASSWORD_RESET_SERIALIZER
-    throttle_scope = "otp_auth_password_reset"
+
+    def get_throttles(self):
+        self.throttle_scope = get_throttle_scope("otp_auth_password_reset")
+        return super().get_throttles()
 
     def post(self, request, *args, **kwargs):
         self.request = request
@@ -399,7 +425,10 @@ class ResetPasswordView(GenericAPIView):
 class PasswordResetConfirmView(GenericAPIView):
     serializer_class = app_settings.PASSWORD_RESET_CONFIRM_SERIALIZER
     permission_classes = (AllowAny,)
-    throttle_scope = "otp_auth_password_reset_confirm"
+
+    def get_throttles(self):
+        self.throttle_scope = get_throttle_scope("otp_auth_password_reset_confirm")
+        return super().get_throttles()
 
     @sensitive_post_parameters_m
     def dispatch(self, *args, **kwargs):
@@ -417,7 +446,10 @@ class PasswordResetConfirmView(GenericAPIView):
 class PasswordChangeView(GenericAPIView):
     serializer_class = app_settings.PASSWORD_CHANGE_SERIALIZER
     permission_classes = (IsAuthenticated,)
-    throttle_scope = "otp_auth_password_change"
+
+    def get_throttles(self):
+        self.throttle_scope = get_throttle_scope("otp_auth_password_change")
+        return super().get_throttles()
 
     @sensitive_post_parameters_m
     def dispatch(self, *args, **kwargs):
