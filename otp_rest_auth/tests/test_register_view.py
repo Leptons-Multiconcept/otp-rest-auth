@@ -19,7 +19,7 @@ class RegisterViewTests(TestCase):
 
     @patch("account.otp_ops.send_verification_otp")
     @override_settings(
-        OTP_REST_AUTH={"VERIFICATION_TYPE": app_settings.AccountVerificationType.NONE}
+        OTP_REST_AUTH={"VERIFICATION_METHOD": app_settings.AccountVerificationMethod.NONE}
     )
     def test_create_user_without_verification(self, mock_send_verification_otp):
         """
@@ -46,7 +46,7 @@ class RegisterViewTests(TestCase):
     @patch("account.otp_ops.send_verification_otp")
     @patch("account.models.TOTP.objects.create")
     @override_settings(
-        OTP_REST_AUTH={"VERIFICATION_TYPE": app_settings.AccountVerificationType.EMAIL}
+        OTP_REST_AUTH={"VERIFICATION_METHOD": app_settings.AccountVerificationMethod.EMAIL}
     )
     def test_create_user_with_verification(
         self, mock_create_totp, mock_send_verification_otp

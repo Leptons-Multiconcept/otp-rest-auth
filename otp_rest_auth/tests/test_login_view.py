@@ -34,7 +34,7 @@ class LoginViewTests(TestCase):
 
     @override_settings(
         OTP_REST_AUTH={
-            "VERIFICATION_TYPE": app_settings.AccountVerificationType.ACCOUNT,
+            "VERIFICATION_METHOD": app_settings.AccountVerificationMethod.ACCOUNT,
         }
     )
     def test_post_valid_credentials(self):
@@ -55,7 +55,7 @@ class LoginViewTests(TestCase):
     @override_settings(
         OTP_REST_AUTH={
             "VERIFICATION_REQUIRED": True,
-            "VERIFICATION_TYPE": app_settings.AccountVerificationType.ACCOUNT,
+            "VERIFICATION_METHOD": app_settings.AccountVerificationMethod.ACCOUNT,
         }
     )
     @patch("account.views.get_login_response_data")
@@ -79,7 +79,7 @@ class LoginViewTests(TestCase):
     @override_settings(
         OTP_REST_AUTH={
             "VERIFICATION_REQUIRED": True,
-            "VERIFICATION_TYPE": app_settings.AccountVerificationType.ACCOUNT,
+            "VERIFICATION_METHOD": app_settings.AccountVerificationMethod.ACCOUNT,
         }
     )
     def test_phone_login_with_account_verification_type(self):
@@ -93,7 +93,7 @@ class LoginViewTests(TestCase):
     @override_settings(
         OTP_REST_AUTH={
             "VERIFICATION_REQUIRED": True,
-            "VERIFICATION_TYPE": app_settings.AccountVerificationType.ACCOUNT,
+            "VERIFICATION_METHOD": app_settings.AccountVerificationMethod.ACCOUNT,
         }
     )
     def test_email_login_with_account_verification_type(self):
@@ -107,7 +107,7 @@ class LoginViewTests(TestCase):
     @override_settings(
         OTP_REST_AUTH={
             "VERIFICATION_REQUIRED": True,
-            "VERIFICATION_TYPE": app_settings.AccountVerificationType.PHONE,
+            "VERIFICATION_METHOD": app_settings.AccountVerificationMethod.PHONE,
         }
     )
     def test_phone_login_with_phone_verification_type_verified(self):
@@ -124,7 +124,7 @@ class LoginViewTests(TestCase):
     @override_settings(
         OTP_REST_AUTH={
             "VERIFICATION_REQUIRED": True,
-            "VERIFICATION_TYPE": app_settings.AccountVerificationType.PHONE,
+            "VERIFICATION_METHOD": app_settings.AccountVerificationMethod.PHONE,
         }
     )
     def test_phone_login_with_phone_verification_type_unverified(self):
@@ -138,7 +138,7 @@ class LoginViewTests(TestCase):
     @override_settings(
         OTP_REST_AUTH={
             "VERIFICATION_REQUIRED": True,
-            "VERIFICATION_TYPE": app_settings.AccountVerificationType.EMAIL,
+            "VERIFICATION_METHOD": app_settings.AccountVerificationMethod.EMAIL,
         }
     )
     def test_email_login_with_account_verification_type_verified(self):
@@ -155,7 +155,7 @@ class LoginViewTests(TestCase):
     @override_settings(
         OTP_REST_AUTH={
             "VERIFICATION_REQUIRED": True,
-            "VERIFICATION_TYPE": app_settings.AccountVerificationType.EMAIL,
+            "VERIFICATION_METHOD": app_settings.AccountVerificationMethod.EMAIL,
         }
     )
     def test_email_login_with_account_verification_type_unverified(self):
@@ -169,7 +169,7 @@ class LoginViewTests(TestCase):
     @override_settings(
         OTP_REST_AUTH={
             "VERIFICATION_REQUIRED": True,
-            "VERIFICATION_TYPE": app_settings.AccountVerificationType.PHONE,
+            "VERIFICATION_METHOD": app_settings.AccountVerificationMethod.PHONE,
         }
     )
     @skip("resolve later")
@@ -187,7 +187,7 @@ class LoginViewTests(TestCase):
     @override_settings(
         OTP_REST_AUTH={
             "VERIFICATION_REQUIRED": True,
-            "VERIFICATION_TYPE": app_settings.AccountVerificationType.EMAIL,
+            "VERIFICATION_METHOD": app_settings.AccountVerificationMethod.EMAIL,
         }
     )
     @skip("resolve later")
@@ -218,7 +218,7 @@ class LoginViewTests(TestCase):
     @override_settings(
         OTP_REST_AUTH={
             "VERIFICATION_REQUIRED": True,
-            "VERIFICATION_TYPE": app_settings.AccountVerificationType.ACCOUNT,
+            "VERIFICATION_METHOD": app_settings.AccountVerificationMethod.ACCOUNT,
         }
     )
     def test_post_unverified_account(self):
@@ -237,7 +237,7 @@ class LoginViewTests(TestCase):
     @override_settings(
         OTP_REST_AUTH={
             "VERIFICATION_REQUIRED": False,
-            "VERIFICATION_TYPE": app_settings.AccountVerificationType.ACCOUNT,
+            "VERIFICATION_METHOD": app_settings.AccountVerificationMethod.ACCOUNT,
         }
     )
     def test_post_unverified_account_with_verification_not_required(self):
@@ -254,7 +254,7 @@ class LoginViewTests(TestCase):
     @override_settings(
         OTP_REST_AUTH={
             "VERIFICATION_REQUIRED": False,
-            "VERIFICATION_TYPE": app_settings.AccountVerificationType.ACCOUNT,
+            "VERIFICATION_METHOD": app_settings.AccountVerificationMethod.ACCOUNT,
             "AUTHENTICATION_METHODS": (
                 app_settings.AuthenticationMethods.EMAIL,
                 app_settings.AuthenticationMethods.USERNAME,
