@@ -39,6 +39,15 @@ class RegisterSerializer(serializers.Serializer):
             self.fields.pop("password1")
             self.fields.pop("password2")
             self.fields["password"] = serializers.CharField(write_only=True)
+        
+        if app_settings.AuthenticationMethods.PHONE not in app_settings.AUTHENTICATION_METHODS:
+            self.fields.pop("phone")
+
+        if app_settings.AuthenticationMethods.EMAIL not in app_settings.AUTHENTICATION_METHODS:
+            self.fields.pop("email")
+
+        if app_settings.AuthenticationMethods.USERNAME not in app_settings.AUTHENTICATION_METHODS:
+            self.fields.pop("username")
 
     def validate_username(self, username):
         username = adapter.clean_username(username)
@@ -53,8 +62,8 @@ class RegisterSerializer(serializers.Serializer):
                 if (
                     account
                     and account.is_verified
-                    or app_settings.VERIFICATION_TYPE
-                    == app_settings.AccountVerificationType.NONE
+                    or app_settings.VERIFICATION_METHOD
+                    == app_settings.AccountVerificationMethod.NONE
                 ):
                     raise serializers.ValidationError(
                         _("A user is already registered with this phone number."),
@@ -70,8 +79,8 @@ class RegisterSerializer(serializers.Serializer):
                 if (
                     account
                     and account.is_verified
-                    or app_settings.VERIFICATION_TYPE
-                    == app_settings.AccountVerificationType.NONE
+                    or app_settings.VERIFICATION_METHOD
+                    == app_settings.AccountVerificationMethod.NONE
                 ):
                     raise serializers.ValidationError(
                         _("A user is already registered with this e-mail address."),
@@ -285,19 +294,19 @@ class LoginSerializer(serializers.Serializer):
             )
 
         if app_settings.VERIFICATION_REQUIRED:
-            verification_type = app_settings.VERIFICATION_TYPE
+            verification_type = app_settings.VERIFICATION_METHOD
             if (
-                verification_type == app_settings.AccountVerificationType.ACCOUNT
+                verification_type == app_settings.AccountVerificationMethod.ACCOUNT
                 and not user_account.is_verified
             ):
                 raise serializers.ValidationError(_("Account is not verified."))
             if (
-                verification_type == app_settings.AccountVerificationType.EMAIL
+                verification_type == app_settings.AccountVerificationMethod.EMAIL
                 and not user_account.email_verified
             ):
                 raise serializers.ValidationError(_("E-mail is not verified."))
             if (
-                verification_type == app_settings.AccountVerificationType.PHONE
+                verification_type == app_settings.AccountVerificationMethod.PHONE
                 and not user_account.phone_verified
             ):
                 raise serializers.ValidationError(_("Phone number is not verified."))
