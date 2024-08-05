@@ -76,7 +76,7 @@ def get_login_response_data(user, context):
 def verify(serializer, request, totp_purpose, login=True) -> Response:
     """
     If OTP is valid set user.is_active and the respective
-    app_settings.VERIFICATION_TYPE of the user account to True.
+    app_settings.VERIFICATION_METHOD of the user account to True.
     """
     otp = serializer.validated_data["otp"]
     success, totp = verify_otp(otp, totp_purpose)
@@ -119,7 +119,7 @@ class RegisterView(CreateAPIView):
         return super().dispatch(*args, **kwargs)
 
     def get_response_data(self, user):
-        if app_settings.VERIFICATION_TYPE != app_settings.AccountVerificationType.NONE:
+        if app_settings.VERIFICATION_METHOD != app_settings.AccountVerificationMethod.NONE:
             return {"detail": _("Verification OTP sent.")}
 
         return get_login_response_data(user, self.get_serializer_context())
@@ -155,20 +155,20 @@ class RegisterView(CreateAPIView):
 
         # send OTP
         if (
-            app_settings.VERIFICATION_TYPE
-            == app_settings.AccountVerificationType.ACCOUNT
+            app_settings.VERIFICATION_METHOD
+            == app_settings.AccountVerificationMethod.ACCOUNT
         ):
             purpose = TOTP.PURPOSE_ACCOUNT_VERIFICATION
         elif (
-            app_settings.VERIFICATION_TYPE == app_settings.AccountVerificationType.EMAIL
+            app_settings.VERIFICATION_METHOD == app_settings.AccountVerificationMethod.EMAIL
         ):
             purpose = TOTP.PURPOSE_EMAIL_VERIFICATION
         elif (
-            app_settings.VERIFICATION_TYPE == app_settings.AccountVerificationType.PHONE
+            app_settings.VERIFICATION_METHOD == app_settings.AccountVerificationMethod.PHONE
         ):
             purpose = TOTP.PURPOSE_PHONE_VERIFICATION
 
-        if app_settings.VERIFICATION_TYPE != app_settings.AccountVerificationType.NONE:
+        if app_settings.VERIFICATION_METHOD != app_settings.AccountVerificationMethod.NONE:
             totp = TOTP.objects.create(user=user, purpose=purpose)
             send_verification_otp(totp, signup=True)
 
