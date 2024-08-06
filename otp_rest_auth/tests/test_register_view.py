@@ -17,7 +17,7 @@ class RegisterViewTests(TestCase):
         self.client = APIClient()
         self.factory = RequestFactory()
 
-    @patch("account.otp_ops.send_verification_otp")
+    @patch("otp_rest_auth.otp_ops.send_verification_otp")
     @override_settings(
         OTP_REST_AUTH={"VERIFICATION_METHOD": app_settings.AccountVerificationMethod.NONE}
     )
@@ -43,8 +43,8 @@ class RegisterViewTests(TestCase):
         self.assertIn("access", response.data)
         self.assertIn("refresh", response.data)
 
-    @patch("account.otp_ops.send_verification_otp")
-    @patch("account.models.TOTP.objects.create")
+    @patch("otp_rest_auth.otp_ops.send_verification_otp")
+    @patch("otp_rest_auth.models.TOTP.objects.create")
     @override_settings(
         OTP_REST_AUTH={"VERIFICATION_METHOD": app_settings.AccountVerificationMethod.EMAIL}
     )

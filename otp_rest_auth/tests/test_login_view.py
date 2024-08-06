@@ -58,8 +58,8 @@ class LoginViewTests(TestCase):
             "VERIFICATION_METHOD": app_settings.AccountVerificationMethod.ACCOUNT,
         }
     )
-    @patch("account.views.get_login_response_data")
-    @patch("account.views.set_jwt_cookies")
+    @patch("otp_rest_auth.views.get_login_response_data")
+    @patch("otp_rest_auth.views.set_jwt_cookies")
     def test_jwt_cookies_set(self, mock_set_jwt_cookies, mock_get_login_response_data):
         mock_get_login_response_data.return_value = {
             "user": {"username": "testuser"},

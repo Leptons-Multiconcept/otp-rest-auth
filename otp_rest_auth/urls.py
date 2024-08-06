@@ -8,12 +8,14 @@ from .views import (
     LogoutView,
     UserDetailsView,
     VerifyAccountView,
-    ChangeEmailView,
-    ChangePhoneView,
     VerifyEmailView,
     VerifyPhoneView,
     PasswordChangeView,
     PasswordResetConfirmView,
+    InvokeChangeEmailOTPView,
+    InvokeChangePhoneOTPView,
+    ChangeEmailConfrimationView,
+    ChangePhoneConfirmationView
 )
 
 urlpatterns = [
@@ -22,8 +24,10 @@ urlpatterns = [
     path("register/", RegisterView.as_view(), name="otp_rest_register"),
     path("user/", UserDetailsView.as_view(), name="otp_rest_user_details"),
     path("resend_otp/", ResendOTPView.as_view(), name="otp_rest_resend_otp"),
-    path("change/phone/", ChangePhoneView.as_view(), name="otp_rest_change_phone"),
-    path("change/email/", ChangeEmailView.as_view(), name="otp_rest_change_email"),
+    path("change/phone/", InvokeChangePhoneOTPView.as_view(), name="otp_rest_change_phone"),
+    path("change/email/", InvokeChangeEmailOTPView.as_view(), name="otp_rest_change_email"),
+    path("change/phone/confirm/", ChangePhoneConfirmationView.as_view(), name="otp_rest_change_phone_set"),
+    path("change/email/confirm/", ChangeEmailConfrimationView.as_view(), name="otp_rest_change_email_set"),
     path("verify/phone/", VerifyPhoneView.as_view(), name="otp_rest_verify_phone"),
     path("verify/email/", VerifyEmailView.as_view(), name="otp_rest_verify_email"),
     path("verify/account/", VerifyAccountView.as_view(), name="otp_rest_verify_account"),

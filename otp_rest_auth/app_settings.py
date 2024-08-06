@@ -52,6 +52,11 @@ class AppSettings(object):
         EMAIL = "email"
         USERNAME = "username"
 
+    def _import_string(self, input):
+        if isinstance(input, str):
+            return import_string(input)
+        return input
+
     def _setting(self, attr, default):
         otp_rest_auth_settings = getattr(settings, "OTP_REST_AUTH", {})
         return otp_rest_auth_settings.get(attr, default)
@@ -111,21 +116,21 @@ class AppSettings(object):
         default_serializer = "otp_rest_auth.serializers.PasswordResetConfirmSerializer"
         serializer = self._setting("PASSWORD_RESET_CONFIRM_SERIALIZER", default_serializer)
 
-        return import_string(serializer)
+        return self._import_string(serializer)
 
     @property
     def PASSWORD_RESET_SERIALIZER(self):
         default_serializer = "otp_rest_auth.serializers.PasswordResetSerializer"
         serializer = self._setting("PASSWORD_RESET_SERIALIZER", default_serializer)
 
-        return import_string(serializer)
+        return self._import_string(serializer)
 
     @property
     def PASSWORD_CHANGE_SERIALIZER(self):
         default_serializer = "otp_rest_auth.serializers.PasswordChangeSerializer"
         serializer = self._setting("PASSWORD_CHANGE_SERIALIZER", default_serializer)
 
-        return import_string(serializer)
+        return self._import_string(serializer)
 
     @property
     def OLD_PASSWORD_FIELD_ENABLED(self):
@@ -136,14 +141,14 @@ class AppSettings(object):
         default_serializer = "otp_rest_auth.serializers.JWTSerializer"
         serializer = self._setting("JWT_SERIALIZER", default_serializer)
 
-        return import_string(serializer)
+        return self._import_string(serializer)
 
     @property
     def LOGIN_SERIALIZER(self):
         default_serializer = "otp_rest_auth.serializers.LoginSerializer"
         serializer = self._setting("LOGIN_SERIALIZER", default_serializer)
         
-        return import_string(serializer)
+        return self._import_string(serializer)
 
     @property
     def UNIQUE_PHONE(self):
@@ -226,14 +231,14 @@ class AppSettings(object):
         default_serializer = "otp_rest_auth.serializers.RegisterSerializer"
         serializer = self._setting("REGISTER_SERIALIZER", default_serializer)
         
-        return import_string(serializer)
+        return self._import_string(serializer)
 
     @property
     def OTP_SERIALIZER(self):
         default_serializer = "otp_rest_auth.serializers.OTPSerializer"
         serializer = self._setting("OTP_SERIALIZER", default_serializer)
         
-        return import_string(serializer)
+        return self._import_string(serializer)
     
     @property
     def REGISTER_PERMISSION_CLASSES(self):
@@ -281,14 +286,14 @@ class AppSettings(object):
         default_serializer = "otp_rest_auth.serializers.UserDetailsSerializer"
         serializer = self._setting("USER_DETAILS_SERIALIZER", default_serializer)
         
-        return import_string(serializer)
+        return self._import_string(serializer)
 
     @property
     def JWT_SERIALIZER_WITH_EXPIRATION(self):
         default_serializer = "otp_rest_auth.serializers.JWTSerializerWithExpiration"
         serializer = self._setting("JWT_SERIALIZER_WITH_EXPIRATION", default_serializer)
         
-        return import_string(serializer)
+        return self._import_string(serializer)
 
     @property
     def LOGIN_UPON_VERIFICATION(self):

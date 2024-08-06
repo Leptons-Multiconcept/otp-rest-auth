@@ -249,7 +249,7 @@ class DefaultAccountAdapter(object):
         msg = self.render_mail(template_prefix, email, context)
         msg.send()
 
-    def send_otp_to_email(self, totp):
+    def send_otp_to_email(self, totp, email):
         from .models import TOTP
 
         verify_your = "account"
@@ -264,9 +264,13 @@ class DefaultAccountAdapter(object):
         }
 
         email_template = "account/email/account_confirmation"
-        self.send_mail(email_template, totp.user.email, ctx)
+        self.send_mail(email_template, email, ctx)
 
-    def send_otp_to_phone(self, totp):
+    def send_otp_to_user_email(self, totp):
+        email = getattr(totp.user, app_settings.USER_MODEL_EMAIL_FIELD)
+        return self.send_otp_to_email(totp, email)
+
+    def send_otp_to_phone(self, totp, phone):
         from twilio.rest import Client
         from .models import TOTP
 
@@ -287,6 +291,11 @@ class DefaultAccountAdapter(object):
         message = client.messages.create(
             body=sms_msg,
             from_=app_settings.TWILIO_PHONE_NUMBER,
-            to=getattr(totp.user, app_settings.USER_MODEL_PHONE_FIELD),
+            to=phone,
         )
         return message.sid
+
+    def send_otp_to_user_phone(self, totp):
+        phone = getattr(totp.user, app_settings.USER_MODEL_PHONE_FIELD)
+        return self.send_otp_to_phone(totp, phone)
+

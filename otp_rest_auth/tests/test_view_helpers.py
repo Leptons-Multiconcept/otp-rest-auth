@@ -20,7 +20,7 @@ class GetLoginResponseDataTests(TestCase):
         self.user = User.objects.create_user(username="testuser", password="12345")
         self.context = {"request": self.factory.get("/")}
 
-    @patch("account.jwt_auth.get_tokens_for_user")
+    @patch("otp_rest_auth.jwt_auth.get_tokens_for_user")
     @override_settings(OTP_REST_AUTH={"JWT_AUTH_RETURN_EXPIRATION": True})
     def test_get_login_response_data_with_expiration(self, mock_get_tokens):
         mock_get_tokens.return_value = ("access_token", "refresh_token")
@@ -33,7 +33,7 @@ class GetLoginResponseDataTests(TestCase):
         self.assertIn("access_expiration", data)
         self.assertIn("refresh_expiration", data)
 
-    @patch("account.jwt_auth.get_tokens_for_user")
+    @patch("otp_rest_auth.jwt_auth.get_tokens_for_user")
     @override_settings(OTP_REST_AUTH={"JWT_AUTH_RETURN_EXPIRATION": False})
     def test_get_login_response_data_without_expiration(self, mock_get_tokens):
         mock_get_tokens.return_value = ("access_token", "refresh_token")
@@ -45,7 +45,7 @@ class GetLoginResponseDataTests(TestCase):
         self.assertNotIn("access_expiration", data)
         self.assertNotIn("refresh_expiration", data)
 
-    @patch("account.jwt_auth.get_tokens_for_user")
+    @patch("otp_rest_auth.jwt_auth.get_tokens_for_user")
     @override_settings(OTP_REST_AUTH={"JWT_AUTH_HTTPONLY": True})
     def test_get_login_response_data_with_httponly(self, mock_get_tokens):
         mock_get_tokens.return_value = ("access_token", "refresh_token")
@@ -56,7 +56,7 @@ class GetLoginResponseDataTests(TestCase):
         self.assertIn("refresh", data)
         self.assertEqual(data["refresh"], "")
 
-    @patch("account.jwt_auth.get_tokens_for_user")
+    @patch("otp_rest_auth.jwt_auth.get_tokens_for_user")
     @override_settings(OTP_REST_AUTH={"JWT_AUTH_HTTPONLY": False})
     def test_get_login_response_data_without_httponly(self, mock_get_tokens):
         mock_get_tokens.return_value = ("access_token", "refresh_token")
@@ -67,7 +67,7 @@ class GetLoginResponseDataTests(TestCase):
         self.assertIn("refresh", data)
         self.assertNotEqual(data["refresh"], "")
 
-    @patch("account.jwt_auth.get_tokens_for_user")
+    @patch("otp_rest_auth.jwt_auth.get_tokens_for_user")
     @override_settings(
         OTP_REST_AUTH={
             "JWT_AUTH_HTTPONLY": False,

@@ -464,16 +464,29 @@ class PasswordChangeSerializer(serializers.Serializer):
     def save(self):
         self.set_password_form.save()
 
-class InvokeChangeEmailOTPSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-
-class InvokeChangePhoneOTPSerializer(serializers.Serializer):
-    phone = PhoneNumberField()
-
 class ChangeEmailSerializer(serializers.Serializer):
-    otp = serializers.IntegerField()
     new_email = serializers.EmailField()
 
+    def validate_new_email(self, new_email):
+        email_field = app_settings.USER_MODEL_EMAIL_FIELD
+        if app_settings.UNIQUE_EMAIL:
+            if UserModel.objects.filter(**{email_field: new_email}).exists():
+                raise serializers.ValidationError("Email address already exists.")
+        return new_email
+
 class ChangePhoneSerializer(serializers.Serializer):
-    otp = serializers.IntegerField()
     new_phone = PhoneNumberField()
+
+    def validate_new_email(self, new_phone):
+        phone_field = app_settings.USER_MODEL_PHONE_FIELD
+        if app_settings.UNIQUE_PHONE:
+            if UserModel.objects.filter(**{phone_field: new_phone}).exists():
+                raise serializers.ValidationError("Phone number already exists.")
+        return new_phone
+
+class ChangeEmailConfirmSerializer(serializers.Serializer):
+    otp = serializers.IntegerField()
+
+
+class ChangePhoneConfirmSerializer(serializers.Serializer):
+    otp = serializers.IntegerField()

@@ -29,7 +29,7 @@ class VerifyAccountViewTests(TestCase):
         response = self.view(request)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    @patch("account.views.verify")
+    @patch("otp_rest_auth.views.verify")
     @override_settings(OTP_REST_AUTH={"OTP_SERIALIZER": OTPSerializer})
     def test_post_valid_data(self, mock_verify):
         data = {"otp": self.totp.otp}
@@ -45,7 +45,7 @@ class VerifyAccountViewTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, {"detail": "Verification successful."})
 
-    @patch("account.views.verify")
+    @patch("otp_rest_auth.views.verify")
     @override_settings(OTP_REST_AUTH={"OTP_SERIALIZER": OTPSerializer})
     def test_post_invalid_data(self, mock_verify):
         data = {"otp": "wrong_otp"}
@@ -74,7 +74,7 @@ class VerifyEmailViewTests(TestCase):
         response = self.view(request)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    @patch("account.views.verify")
+    @patch("otp_rest_auth.views.verify")
     @override_settings(OTP_REST_AUTH={"OTP_SERIALIZER": OTPSerializer})
     def test_post_valid_data(self, mock_verify):
         data = {"otp": self.totp.otp}
@@ -90,7 +90,7 @@ class VerifyEmailViewTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, {"detail": "Verification successful."})
 
-    @patch("account.views.verify")
+    @patch("otp_rest_auth.views.verify")
     @override_settings(OTP_REST_AUTH={"OTP_SERIALIZER": OTPSerializer})
     def test_post_invalid_data(self, mock_verify):
         data = {"otp": "wrong_otp"}
@@ -119,7 +119,7 @@ class VerifyPhoneViewTests(TestCase):
         response = self.view(request)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    @patch("account.views.verify")
+    @patch("otp_rest_auth.views.verify")
     @override_settings(OTP_REST_AUTH={"OTP_SERIALIZER": OTPSerializer})
     def test_post_valid_data(self, mock_verify):
         data = {"otp": self.totp.otp}
@@ -135,7 +135,7 @@ class VerifyPhoneViewTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, {"detail": "Verification successful."})
 
-    @patch("account.views.verify")
+    @patch("otp_rest_auth.views.verify")
     @override_settings(OTP_REST_AUTH={"OTP_SERIALIZER": OTPSerializer})
     def test_post_invalid_data(self, mock_verify):
         data = {"otp": "wrong_otp"}
