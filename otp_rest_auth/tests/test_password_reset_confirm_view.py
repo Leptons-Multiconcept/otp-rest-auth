@@ -25,8 +25,8 @@ class PasswordResetConfirmViewTests(APITestCase):
         )
         self.url = reverse("otp_rest_password_reset_confirm")
 
-    @patch("account.serializers.verify_otp")
-    @patch("account.serializers.validate_otp")
+    @patch("otp_rest_auth.serializers.verify_otp")
+    @patch("otp_rest_auth.serializers.validate_otp")
     @patch("django.contrib.auth.forms.SetPasswordForm.is_valid", return_value=True)
     @patch("django.contrib.auth.forms.SetPasswordForm.save")
     def test_password_reset_confirm_success(
@@ -52,7 +52,7 @@ class PasswordResetConfirmViewTests(APITestCase):
         )
         mock_save.assert_called_once()
 
-    @patch("account.serializers.validate_otp")
+    @patch("otp_rest_auth.serializers.validate_otp")
     def test_password_reset_confirm_invalid_otp(self, mock_validate_otp):
         mock_validate_otp.side_effect = TOTP.DoesNotExist
         data = {

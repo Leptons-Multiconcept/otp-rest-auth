@@ -91,8 +91,8 @@ class OTPFunctionsTests(TestCase):
             expiration_time=timezone.now() + timezone.timedelta(minutes=5),
         )
 
-        with patch.object(adapter, "send_otp_to_phone") as mock_phone_sent:
-            with patch.object(adapter, "send_otp_to_email") as mock_email_sent:
+        with patch.object(adapter, "send_otp_to_user_phone") as mock_phone_sent:
+            with patch.object(adapter, "send_otp_to_user_email") as mock_email_sent:
                 send_verification_otp(totp)
                 mock_phone_sent.assert_called_once
                 mock_email_sent.assert_called_once
@@ -109,8 +109,8 @@ class OTPFunctionsTests(TestCase):
             expiration_time=timezone.now() + timezone.timedelta(minutes=5),
         )
 
-        with patch.object(adapter, "send_otp_to_phone") as mock_phone_sent:
-            with patch.object(adapter, "send_otp_to_email") as mock_email_sent:
+        with patch.object(adapter, "send_otp_to_user_phone") as mock_phone_sent:
+            with patch.object(adapter, "send_otp_to_user_email") as mock_email_sent:
                 send_verification_otp(totp)
                 mock_phone_sent.assert_not_called
                 mock_email_sent.assert_called_once
@@ -127,8 +127,8 @@ class OTPFunctionsTests(TestCase):
             expiration_time=timezone.now() + timezone.timedelta(minutes=5),
         )
 
-        with patch.object(adapter, "send_otp_to_phone") as mock_phone_sent:
-            with patch.object(adapter, "send_otp_to_email") as mock_email_sent:
+        with patch.object(adapter, "send_otp_to_user_phone") as mock_phone_sent:
+            with patch.object(adapter, "send_otp_to_user_email") as mock_email_sent:
                 send_verification_otp(totp)
                 mock_email_sent.assert_not_called
                 mock_phone_sent.assert_called_once
@@ -149,8 +149,8 @@ class OTPFunctionsTests(TestCase):
             purpose=TOTP.PURPOSE_PASSWORD_RESET,
         )
 
-        with patch.object(adapter, "send_otp_to_email") as mock_email_sent:
-            with patch.object(adapter, "send_otp_to_phone") as mock_phone_sent:
+        with patch.object(adapter, "send_otp_to_user_email") as mock_email_sent:
+            with patch.object(adapter, "send_otp_to_user_phone") as mock_phone_sent:
                 send_verification_otp(totp)
 
                 # Check that adapter methods are called based on configured medium

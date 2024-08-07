@@ -1,5 +1,5 @@
 from django.conf import settings
-
+from django.utils.module_loading import import_string
 
 class AppSettings(object):
     """
@@ -11,12 +11,12 @@ class AppSettings(object):
     """
 
     def __init__(self):
-        if self.VERIFICATION_TYPE is self.AccountVerificationType.NONE:
+        if self.VERIFICATION_METHOD is self.AccountVerificationMethod.NONE:
             assert (
                 self.VERIFICATION_REQUIRED is False
-            ), "VERIFICATION_REQUIRED must be False when VERIFICATION_TYPE is set to None"
+            ), "VERIFICATION_REQUIRED must be False when VERIFICATION_METHOD is set to None"
 
-        if self.VERIFICATION_TYPE == self.AccountVerificationType.ACCOUNT:
+        if self.VERIFICATION_METHOD == self.AccountVerificationMethod.ACCOUNT:
             assert (
                 self.PHONE_REQUIRED and self.EMAIL_REQUIRED
             ), "Both PHONE and EMAIL must be required for Account verification"
@@ -24,15 +24,15 @@ class AppSettings(object):
                 self.UNIQUE_PHONE and self.UNIQUE_EMAIL
             ), "Both PHONE and EMAIL must be unique for Account verification"
 
-        if self.VERIFICATION_TYPE == "Phone":
+        if self.VERIFICATION_METHOD == "Phone":
             assert self.PHONE_REQUIRED, "PHONE must be required for Phone verification"
             assert self.UNIQUE_PHONE, "PHONE must be unique for Phone verification"
 
-        if self.VERIFICATION_TYPE == "Email":
+        if self.VERIFICATION_METHOD == "Email":
             assert self.EMAIL_REQUIRED, "EMAIL must be required for Email verification"
             assert self.EMAIL_UNIQUE, "EMAIL must be unique for Email verification"
 
-    class AccountVerificationType:
+    class AccountVerificationMethod:
         # After signing up, keep the user account inactive until the account
         # is verified. An account can be verified and Email and Phone will be
         # unverified. But if either Email or Phone is verified, Account will be
@@ -52,16 +52,21 @@ class AppSettings(object):
         EMAIL = "email"
         USERNAME = "username"
 
+    def _import_string(self, input):
+        if isinstance(input, str):
+            return import_string(input)
+        return input
+
     def _setting(self, attr, default):
         otp_rest_auth_settings = getattr(settings, "OTP_REST_AUTH", {})
         return otp_rest_auth_settings.get(attr, default)
 
     @property
-    def VERIFICATION_TYPE(self):
+    def VERIFICATION_METHOD(self):
         """
         Account verification method.
         """
-        return self._setting("VERIFICATION_TYPE", self.AccountVerificationType.ACCOUNT)
+        return self._setting("VERIFICATION_METHOD", self.AccountVerificationMethod.ACCOUNT)
 
     @property
     def VERIFICATION_REQUIRED(self):
@@ -73,7 +78,7 @@ class AppSettings(object):
             - Activate user account upon registration
             - Allow login with unverified account
         """
-        legacy = self.VERIFICATION_TYPE != self.AccountVerificationType.NONE
+        legacy = self.VERIFICATION_METHOD != self.AccountVerificationMethod.NONE
 
         return self._setting("VERIFICATION_REQUIRED", legacy)
 
@@ -108,23 +113,24 @@ class AppSettings(object):
 
     @property
     def PASSWORD_RESET_CONFIRM_SERIALIZER(self):
-        from .serializers import PasswordResetConfirmSerializer
+        default_serializer = "otp_rest_auth.serializers.PasswordResetConfirmSerializer"
+        serializer = self._setting("PASSWORD_RESET_CONFIRM_SERIALIZER", default_serializer)
 
-        return self._setting(
-            "PASSWORD_RESET_CONFIRM_SERIALIZER", PasswordResetConfirmSerializer
-        )
+        return self._import_string(serializer)
 
     @property
     def PASSWORD_RESET_SERIALIZER(self):
-        from .serializers import PasswordResetSerializer
+        default_serializer = "otp_rest_auth.serializers.PasswordResetSerializer"
+        serializer = self._setting("PASSWORD_RESET_SERIALIZER", default_serializer)
 
-        return self._setting("PASSWORD_RESET_SERIALIZER", PasswordResetSerializer)
+        return self._import_string(serializer)
 
     @property
     def PASSWORD_CHANGE_SERIALIZER(self):
-        from .serializers import PasswordChangeSerializer
+        default_serializer = "otp_rest_auth.serializers.PasswordChangeSerializer"
+        serializer = self._setting("PASSWORD_CHANGE_SERIALIZER", default_serializer)
 
-        return self._setting("PASSWORD_CHANGE_SERIALIZER", PasswordChangeSerializer)
+        return self._import_string(serializer)
 
     @property
     def OLD_PASSWORD_FIELD_ENABLED(self):
@@ -132,15 +138,17 @@ class AppSettings(object):
 
     @property
     def JWT_SERIALIZER(self):
-        from .serializers import JWTSerializer
+        default_serializer = "otp_rest_auth.serializers.JWTSerializer"
+        serializer = self._setting("JWT_SERIALIZER", default_serializer)
 
-        return self._setting("JWT_SERIALIZER", JWTSerializer)
+        return self._import_string(serializer)
 
     @property
     def LOGIN_SERIALIZER(self):
-        from .serializers import LoginSerializer
-
-        return self._setting("LOGIN_SERIALIZER", LoginSerializer)
+        default_serializer = "otp_rest_auth.serializers.LoginSerializer"
+        serializer = self._setting("LOGIN_SERIALIZER", default_serializer)
+        
+        return self._import_string(serializer)
 
     @property
     def UNIQUE_PHONE(self):
@@ -220,16 +228,18 @@ class AppSettings(object):
 
     @property
     def REGISTER_SERIALIZER(self):
-        from .serializers import RegisterSerializer
-
-        return self._setting("REGISTER_SERIALIZER", RegisterSerializer)
+        default_serializer = "otp_rest_auth.serializers.RegisterSerializer"
+        serializer = self._setting("REGISTER_SERIALIZER", default_serializer)
+        
+        return self._import_string(serializer)
 
     @property
     def OTP_SERIALIZER(self):
-        from .serializers import OTPSerializer
-
-        return self._setting("OTP_SERIALIZER", OTPSerializer)
-
+        default_serializer = "otp_rest_auth.serializers.OTPSerializer"
+        serializer = self._setting("OTP_SERIALIZER", default_serializer)
+        
+        return self._import_string(serializer)
+    
     @property
     def REGISTER_PERMISSION_CLASSES(self):
         return self._setting("REGISTER_PERMISSION_CLASSES", [])
@@ -273,17 +283,17 @@ class AppSettings(object):
 
     @property
     def USER_DETAILS_SERIALIZER(self):
-        from .serializers import UserDetailsSerializer
-
-        return self._setting("USER_DETAILS_SERIALIZER", UserDetailsSerializer)
+        default_serializer = "otp_rest_auth.serializers.UserDetailsSerializer"
+        serializer = self._setting("USER_DETAILS_SERIALIZER", default_serializer)
+        
+        return self._import_string(serializer)
 
     @property
     def JWT_SERIALIZER_WITH_EXPIRATION(self):
-        from .serializers import JWTSerializerWithExpiration
-
-        return self._setting(
-            "JWT_SERIALIZER_WITH_EXPIRATION", JWTSerializerWithExpiration
-        )
+        default_serializer = "otp_rest_auth.serializers.JWTSerializerWithExpiration"
+        serializer = self._setting("JWT_SERIALIZER_WITH_EXPIRATION", default_serializer)
+        
+        return self._import_string(serializer)
 
     @property
     def LOGIN_UPON_VERIFICATION(self):

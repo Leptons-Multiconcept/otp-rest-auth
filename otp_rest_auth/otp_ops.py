@@ -45,23 +45,23 @@ def send_verification_otp(totp: TOTP, request=None, signup=False):
         )
 
     if totp.purpose == TOTP.PURPOSE_ACCOUNT_VERIFICATION:
-        adapter.send_otp_to_email(totp)
-        adapter.send_otp_to_phone(totp)
+        adapter.send_otp_to_user_email(totp)
+        adapter.send_otp_to_user_phone(totp)
 
         signal_email_confirmation_sent()
         signal_phone_confirmation_sent()
 
     elif totp.purpose == TOTP.PURPOSE_EMAIL_VERIFICATION:
-        adapter.send_otp_to_email(totp)
+        adapter.send_otp_to_user_email(totp)
         signal_email_confirmation_sent()
 
     elif totp.purpose == TOTP.PURPOSE_PHONE_VERIFICATION:
-        adapter.send_otp_to_phone(totp)
+        adapter.send_otp_to_user_phone(totp)
         signal_phone_confirmation_sent()
 
     elif totp.purpose == TOTP.PURPOSE_PASSWORD_RESET:
         medium = app_settings.PASSWORD_RESET_OTP_RECIPIENTS
         if "phone" in medium:
-            adapter.send_otp_to_phone(totp)
+            adapter.send_otp_to_user_phone(totp)
         if "email" in medium:
-            adapter.send_otp_to_email(totp)
+            adapter.send_otp_to_user_email(totp)

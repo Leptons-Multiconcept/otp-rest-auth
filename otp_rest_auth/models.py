@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from phonenumber_field.modelfields import PhoneNumberField
 
 from .app_settings import app_settings
 
@@ -104,3 +105,8 @@ class TOTP(models.Model):
                 )
 
         super().save(*args, **kwargs)
+
+class TOTPMetadata(models.Model):
+    totp = models.OneToOneField(TOTP, on_delete=models.CASCADE, related_name='metadata')
+    new_phone = PhoneNumberField(null=True)
+    new_email = models.EmailField(null=True)

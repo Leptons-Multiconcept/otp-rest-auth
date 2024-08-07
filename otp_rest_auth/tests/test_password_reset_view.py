@@ -22,7 +22,7 @@ class ResetPasswordViewTests(APITestCase):
         )
         self.url = reverse("otp_rest_password_reset")
 
-    @patch("account.views.send_verification_otp")
+    @patch("otp_rest_auth.views.send_verification_otp")
     def test_reset_password_success(self, mock_send_verification_otp):
         data = {"email": self.user.email}
         response = self.client.post(self.url, data, format="json")
@@ -56,7 +56,7 @@ class ResetPasswordViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("email", response.data)
 
-    @patch("account.views.send_verification_otp")
+    @patch("otp_rest_auth.views.send_verification_otp")
     def test_reset_password_phone_success(self, mock_send_verification_otp):
         data = {"phone": "+2348145640915"}
         response = self.client.post(self.url, data, format="json")

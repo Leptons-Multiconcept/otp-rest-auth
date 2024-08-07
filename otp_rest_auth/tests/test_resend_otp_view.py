@@ -33,7 +33,7 @@ class ResendOTPViewTests(TestCase):
         response = self.view(request)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    @patch("account.views.send_verification_otp")
+    @patch("otp_rest_auth.views.send_verification_otp")
     def test_post_valid_data(self, mock_send_verification_otp):
         data = {
             "purpose": TOTP.PURPOSE_ACCOUNT_VERIFICATION,
@@ -50,7 +50,7 @@ class ResendOTPViewTests(TestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             mock_send_verification_otp.assert_called_once()
 
-    @patch("account.views.send_verification_otp")
+    @patch("otp_rest_auth.views.send_verification_otp")
     def test_post_invalid_data(self, mock_send_verification_otp):
         data = {
             "purpose": TOTP.PURPOSE_ACCOUNT_VERIFICATION,
@@ -68,7 +68,7 @@ class ResendOTPViewTests(TestCase):
             self.assertEqual(response.data, {"detail": "Incorrect email or phone."})
             mock_send_verification_otp.assert_not_called()
 
-    @patch("account.views.send_verification_otp")
+    @patch("otp_rest_auth.views.send_verification_otp")
     def test_post_resend_otp_with_verified_account(self, mock_send_verification_otp):
         self.account.is_verified = True
         self.account.save()
@@ -89,7 +89,7 @@ class ResendOTPViewTests(TestCase):
             self.assertEqual(response.data, {"detail": "ok"})
             mock_send_verification_otp.assert_not_called()
 
-    @patch("account.views.send_verification_otp")
+    @patch("otp_rest_auth.views.send_verification_otp")
     def test_post_resend_otp_with_unverified_account(self, mock_send_verification_otp):
         data = {
             "purpose": TOTP.PURPOSE_ACCOUNT_VERIFICATION,
@@ -106,7 +106,7 @@ class ResendOTPViewTests(TestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             mock_send_verification_otp.assert_called_once()
 
-    @patch("account.views.send_verification_otp")
+    @patch("otp_rest_auth.views.send_verification_otp")
     def test_post_resend_otp_with_invalid_otp(self, mock_send_verification_otp):
         self.totp.is_valid = False
         self.totp.save()
@@ -126,7 +126,7 @@ class ResendOTPViewTests(TestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             mock_send_verification_otp.assert_called_once()
 
-    @patch("account.views.send_verification_otp")
+    @patch("otp_rest_auth.views.send_verification_otp")
     def test_post_resend_otp_invalidates_existing_otp(self, mock_send_verification_otp):
         self.totp.is_valid = True
         self.totp.save()
