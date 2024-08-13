@@ -14,7 +14,7 @@ from rest_framework.generics import CreateAPIView, GenericAPIView, RetrieveUpdat
 
 from .app_settings import app_settings
 from . import signals
-from . utils import get_throttle_scope
+from .utils import get_throttle_scope
 from .models import Account, TOTP, TOTPMetadata
 from .otp_ops import send_verification_otp, verify_otp
 from .serializers import (
@@ -120,7 +120,10 @@ class RegisterView(CreateAPIView):
         return super().dispatch(*args, **kwargs)
 
     def get_response_data(self, user):
-        if app_settings.VERIFICATION_METHOD != app_settings.AccountVerificationMethod.NONE:
+        if (
+            app_settings.VERIFICATION_METHOD
+            != app_settings.AccountVerificationMethod.NONE
+        ):
             return {"detail": _("Verification OTP sent.")}
 
         return get_login_response_data(user, self.get_serializer_context())
@@ -140,6 +143,10 @@ class RegisterView(CreateAPIView):
             )
         else:
             response = Response(status=status.HTTP_204_NO_CONTENT, headers=headers)
+
+        if app_settings.VERIFICATION_REQUIRED is False:
+            user.is_active = True
+            user.save()
 
         return response
 
@@ -161,15 +168,20 @@ class RegisterView(CreateAPIView):
         ):
             purpose = TOTP.PURPOSE_ACCOUNT_VERIFICATION
         elif (
-            app_settings.VERIFICATION_METHOD == app_settings.AccountVerificationMethod.EMAIL
+            app_settings.VERIFICATION_METHOD
+            == app_settings.AccountVerificationMethod.EMAIL
         ):
             purpose = TOTP.PURPOSE_EMAIL_VERIFICATION
         elif (
-            app_settings.VERIFICATION_METHOD == app_settings.AccountVerificationMethod.PHONE
+            app_settings.VERIFICATION_METHOD
+            == app_settings.AccountVerificationMethod.PHONE
         ):
             purpose = TOTP.PURPOSE_PHONE_VERIFICATION
 
-        if app_settings.VERIFICATION_METHOD != app_settings.AccountVerificationMethod.NONE:
+        if (
+            app_settings.VERIFICATION_METHOD
+            != app_settings.AccountVerificationMethod.NONE
+        ):
             totp = TOTP.objects.create(user=user, purpose=purpose)
             send_verification_otp(totp, signup=True)
 
@@ -260,19 +272,20 @@ class ResendOTPView(views.APIView):
         data = serializer.validated_data
 
         if data["purpose"] == TOTP.PURPOSE_ACCOUNT_VERIFICATION:
-            filter = {
-                app_settings.USER_MODEL_EMAIL_FIELD: data["email"],
-                app_settings.USER_MODEL_PHONE_FIELD: data["phone"],
-            }
+            email, phone = data.get("email"), data.get("phone")
+            filter = {app_settings.USER_MODEL_EMAIL_FIELD: email} if email else {}
+            if phone:
+                filter[app_settings.USER_MODEL_PHONE_FIELD] = phone
+
         elif data["purpose"] == TOTP.PURPOSE_EMAIL_VERIFICATION:
             filter = {app_settings.USER_MODEL_EMAIL_FIELD: data["email"]}
         elif data["purpose"] == TOTP.PURPOSE_PHONE_VERIFICATION:
             filter = {app_settings.USER_MODEL_PHONE_FIELD: data["phone"]}
-        elif data["purpose"] == TOTP.PURPOSE_PHONE_VERIFICATION:
-            if "phone" in data:
-                filter = {app_settings.USER_MODEL_PHONE_FIELD: data["phone"]}
-            if "email" in data:
-                filter = {app_settings.USER_MODEL_EMAIL_FIELD: data["email"]}
+        elif data["purpose"] == TOTP.PURPOSE_PASSWORD_RESET:
+            email, phone = data.get("email"), data.get("phone")
+            filter = {app_settings.USER_MODEL_EMAIL_FIELD: email} if email else {}
+            if phone:
+                filter[app_settings.USER_MODEL_PHONE_FIELD] = phone
 
         user = UserModel.objects.filter(**filter).first()
         if not user:
@@ -497,6 +510,7 @@ class UserDetailsView(RetrieveUpdateAPIView):
         """
         return get_user_model().objects.none()
 
+
 class InvokeChangeEmailOTPView(GenericAPIView):
     serializer_class = ChangeEmailSerializer
     permission_classes = (IsAuthenticated,)
@@ -506,14 +520,15 @@ class InvokeChangeEmailOTPView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data["new_email"]
         user = request.user
-        
+
         totp = TOTP.objects.create(user=user, purpose=TOTP.PURPOSE_EMAIL_VERIFICATION)
         TOTPMetadata.objects.create(totp=totp, new_email=email)
-        
+
         adapter.send_otp_to_email(totp, email)
 
         return Response({"detail": _("Verification OTP sent.")})
-    
+
+
 class InvokeChangePhoneOTPView(GenericAPIView):
     serializer_class = ChangePhoneSerializer
     permission_classes = (IsAuthenticated,)
@@ -523,13 +538,14 @@ class InvokeChangePhoneOTPView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         phone = serializer.validated_data["new_phone"]
         user = request.user
-                
+
         totp = TOTP.objects.create(user=user, purpose=TOTP.PURPOSE_PHONE_VERIFICATION)
         TOTPMetadata.objects.create(totp=totp, new_phone=phone)
 
         adapter.send_otp_to_phone(totp, phone)
 
         return Response({"detail": _("Verification OTP sent.")})
+
 
 class ChangeEmailConfrimationView(GenericAPIView):
     serializer_class = ChangeEmailConfirmSerializer
@@ -542,23 +558,32 @@ class ChangeEmailConfrimationView(GenericAPIView):
         otp = serializer.validated_data["otp"]
         success, totp = verify_otp(otp, TOTP.PURPOSE_EMAIL_VERIFICATION)
         if not success or totp.user != request.user:
-            return Response({"detail": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {"detail": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         totp_metadata = TOTPMetadata.objects.filter(totp=totp).first()
         if not totp_metadata or not totp_metadata.new_email:
-            return Response({"detail": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {"detail": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         if app_settings.UNIQUE_EMAIL:
             # Ensure the new email address isn't used by another user
             email_field = app_settings.USER_MODEL_EMAIL_FIELD
-            if UserModel.objects.filter(**{email_field: totp_metadata.new_email}).exists():
-                return Response({"detail": "Email address already exists."}, status=status.HTTP_400_BAD_REQUEST)
-                
+            if UserModel.objects.filter(
+                **{email_field: totp_metadata.new_email}
+            ).exists():
+                return Response(
+                    {"detail": "Email address already exists."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         user_account = Account.objects.filter(user=totp.user).first()
         if totp.user and not user_account:
             # Create account for user. The user may have logged in via some social auth.
             user_account = Account.objects.create(user=totp.user)
-        
+
         if not user_account.email_verified:
             user_account.email_verified = True
 
@@ -570,7 +595,8 @@ class ChangeEmailConfrimationView(GenericAPIView):
         user_account.save()
 
         return Response(status=status.HTTP_200_OK)
-            
+
+
 class ChangePhoneConfirmationView(GenericAPIView):
     serializer_class = ChangeEmailConfirmSerializer
     permission_classes = (IsAuthenticated,)
@@ -582,26 +608,34 @@ class ChangePhoneConfirmationView(GenericAPIView):
         otp = serializer.validated_data["otp"]
         success, totp = verify_otp(otp, TOTP.PURPOSE_PHONE_VERIFICATION)
         if not success or totp.user != request.user:
-            return Response({"detail": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {"detail": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         totp_metadata = TOTPMetadata.objects.filter(totp=totp).first()
         if not totp_metadata or not totp_metadata.new_phone:
-            return Response({"detail": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {"detail": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         if app_settings.UNIQUE_PHONE:
             # Ensure the new phone number isn't used by another user
             phone_field = app_settings.USER_MODEL_PHONE_FIELD
-            if UserModel.objects.filter(**{phone_field: totp_metadata.new_phone}).exists():
-                return Response({"detail": "Phone number already exists."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        
+            if UserModel.objects.filter(
+                **{phone_field: totp_metadata.new_phone}
+            ).exists():
+                return Response(
+                    {"detail": "Phone number already exists."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         user_account = Account.objects.filter(user=totp.user).first()
         if totp.user and not user_account:
             # Create account for user. The user may have logged in via some social auth.
             user_account = Account.objects.create(user=totp.user)
-        
+
         if not user_account.phone_verified:
-            user_account.phone_verified = True  
+            user_account.phone_verified = True
 
         totp.user.is_active = True
         new_phone = totp_metadata.new_phone
@@ -610,4 +644,3 @@ class ChangePhoneConfirmationView(GenericAPIView):
         totp.user.save()
         user_account.save()
         return Response(status=status.HTTP_200_OK)
-            
