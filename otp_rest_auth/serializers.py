@@ -39,14 +39,23 @@ class RegisterSerializer(serializers.Serializer):
             self.fields.pop("password1")
             self.fields.pop("password2")
             self.fields["password"] = serializers.CharField(write_only=True)
-        
-        if app_settings.AuthenticationMethods.PHONE not in app_settings.AUTHENTICATION_METHODS:
+
+        if (
+            app_settings.AuthenticationMethods.PHONE
+            not in app_settings.AUTHENTICATION_METHODS
+        ):
             self.fields.pop("phone")
 
-        if app_settings.AuthenticationMethods.EMAIL not in app_settings.AUTHENTICATION_METHODS:
+        if (
+            app_settings.AuthenticationMethods.EMAIL
+            not in app_settings.AUTHENTICATION_METHODS
+        ):
             self.fields.pop("email")
 
-        if app_settings.AuthenticationMethods.USERNAME not in app_settings.AUTHENTICATION_METHODS:
+        if (
+            app_settings.AuthenticationMethods.USERNAME
+            not in app_settings.AUTHENTICATION_METHODS
+        ):
             self.fields.pop("username")
 
     def validate_username(self, username):
@@ -57,34 +66,50 @@ class RegisterSerializer(serializers.Serializer):
         phone = adapter.clean_phone(phone)
         if app_settings.UNIQUE_PHONE:
             user = get_user_by_phone(phone)
-            if user:
-                account = Account.objects.filter(user=user).first()
-                if (
-                    account
-                    and account.is_verified
-                    or app_settings.VERIFICATION_METHOD
-                    == app_settings.AccountVerificationMethod.NONE
-                ):
-                    raise serializers.ValidationError(
-                        _("A user is already registered with this phone number."),
+            account = Account.objects.filter(user=user).first()
+
+            if (
+                account
+                and not account.is_verified
+                and app_settings.VERIFICATION_METHOD
+                == app_settings.AccountVerificationMethod.PHONE
+            ):
+                raise serializers.ValidationError(
+                    _(
+                        "Phone number is not verified. A verification code was sent to your phone. "
+                        "Please verify your number or request a new code."
                     )
+                )
+            elif account and account.is_verified:
+                raise serializers.ValidationError(
+                    _("A user is already registered with this phone number."),
+                )
+
         return phone
 
     def validate_email(self, email):
         email = adapter.clean_email(email)
         if app_settings.UNIQUE_EMAIL:
             user = get_user_by_email(email)
-            if user:
-                account = Account.objects.filter(user=user).first()
-                if (
-                    account
-                    and account.is_verified
-                    or app_settings.VERIFICATION_METHOD
-                    == app_settings.AccountVerificationMethod.NONE
-                ):
-                    raise serializers.ValidationError(
-                        _("A user is already registered with this e-mail address."),
+            account = Account.objects.filter(user=user).first()
+
+            if (
+                account
+                and not account.is_verified
+                and app_settings.VERIFICATION_METHOD
+                == app_settings.AccountVerificationMethod.EMAIL
+            ):
+                raise serializers.ValidationError(
+                    _(
+                        "Email address is not verified. A verification code was sent to your email. "
+                        "Please verify your email or request a new code."
                     )
+                )
+            elif account and account.is_verified:
+                raise serializers.ValidationError(
+                    _("A user is already registered with this e-mail address."),
+                )
+
         return email
 
     def validate_password1(self, password):
@@ -97,6 +122,21 @@ class RegisterSerializer(serializers.Serializer):
                 raise serializers.ValidationError(
                     _("The two password fields didn't match.")
                 )
+
+        if (
+            app_settings.VERIFICATION_METHOD
+            == app_settings.AccountVerificationMethod.ACCOUNT
+        ):
+            user_from_email = get_user_by_email(data.get("email"))
+            user_from_phone = get_user_by_phone(data.get("phone"))
+            if user_from_email or user_from_phone:
+                raise serializers.ValidationError(
+                    _(
+                        "An account already exists with the provided email or phone number. "
+                        "Please verify your account or use a different email or phone number."
+                    )
+                )
+
         return data
 
     def get_cleaned_data(self):
@@ -140,10 +180,10 @@ class ResendOTPSerializer(serializers.Serializer):
 
     def validate(self, data):
         if data["purpose"] == TOTP.PURPOSE_ACCOUNT_VERIFICATION:
-            if "phone" not in data:
-                raise serializers.ValidationError(_('"phone" field is required.'))
-            if "email" not in data:
-                raise serializers.ValidationError(_('"email" field is required.'))
+            if "phone" not in data and "email" not in data:
+                raise serializers.ValidationError(
+                    _("Either 'phone' or 'email' field is required.")
+                )
 
         if data["purpose"] == TOTP.PURPOSE_EMAIL_VERIFICATION:
             if "email" not in data:
@@ -154,12 +194,20 @@ class ResendOTPSerializer(serializers.Serializer):
                 raise serializers.ValidationError(_('"phone" field is required.'))
 
         if data["purpose"] == TOTP.PURPOSE_PASSWORD_RESET:
-            if "phone" in app_settings.PASSWORD_RESET_OTP_RECIPIENTS:
+            if (
+                "phone" in app_settings.PASSWORD_RESET_OTP_RECIPIENTS
+                and "email" in app_settings.PASSWORD_RESET_OTP_RECIPIENTS
+            ):
+                if "phone" not in data and "email" not in data:
+                    raise serializers.ValidationError(
+                        _("Either 'phone' or 'email' field is required.")
+                    )
+            elif "phone" in app_settings.PASSWORD_RESET_OTP_RECIPIENTS:
                 if "phone" not in data:
                     raise serializers.ValidationError(_("'phone' field is required."))
-            if "email" in app_settings.PASSWORD_RESET_OTP_RECIPIENTS:
+            elif "email" in app_settings.PASSWORD_RESET_OTP_RECIPIENTS:
                 if "email" not in data:
-                    raise serializers.ValidationError(_('"email" field is required.'))
+                    raise serializers.ValidationError(_("'email' field is required."))
 
         return super().validate(data)
 
@@ -464,6 +512,7 @@ class PasswordChangeSerializer(serializers.Serializer):
     def save(self):
         self.set_password_form.save()
 
+
 class ChangeEmailSerializer(serializers.Serializer):
     new_email = serializers.EmailField()
 
@@ -474,6 +523,7 @@ class ChangeEmailSerializer(serializers.Serializer):
                 raise serializers.ValidationError("Email address already exists.")
         return new_email
 
+
 class ChangePhoneSerializer(serializers.Serializer):
     new_phone = PhoneNumberField()
 
@@ -483,6 +533,7 @@ class ChangePhoneSerializer(serializers.Serializer):
             if UserModel.objects.filter(**{phone_field: new_phone}).exists():
                 raise serializers.ValidationError("Phone number already exists.")
         return new_phone
+
 
 class ChangeEmailConfirmSerializer(serializers.Serializer):
     otp = serializers.IntegerField()
