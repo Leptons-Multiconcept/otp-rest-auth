@@ -296,14 +296,16 @@ class ResendOTPView(views.APIView):
 
         purpose = data["purpose"]
         account = Account.objects.filter(user=user).first()
-        response = Response({"detail": "ok"}, status=status.HTTP_200_OK)
 
         if purpose == TOTP.PURPOSE_ACCOUNT_VERIFICATION and account.is_verified:
-            return response
+            msg = "Account already verified."
+            return Response({"detail": msg}, status=status.HTTP_400_BAD_REQUEST)
         elif purpose == TOTP.PURPOSE_EMAIL_VERIFICATION and account.email_verified:
-            return response
+            msg = "Email address already verified."
+            return Response({"detail": msg}, status=status.HTTP_400_BAD_REQUEST)
         elif purpose == TOTP.PURPOSE_PHONE_VERIFICATION and account.phone_verified:
-            return response
+            msg = "Phone number already verified."
+            return Response({"detail": msg}, status=status.HTTP_400_BAD_REQUEST)
 
         # invalidate existing otp
         old_totp = TOTP.objects.filter(user=user, purpose=data["purpose"]).first()
@@ -314,7 +316,7 @@ class ResendOTPView(views.APIView):
         new_totp = TOTP.objects.create(user=user, purpose=data["purpose"])
         send_verification_otp(new_totp, request=request)
 
-        return response
+        return Response({"detail": "ok"}, status=status.HTTP_200_OK)
 
 
 class LoginView(GenericAPIView):
