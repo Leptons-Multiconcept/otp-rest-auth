@@ -292,7 +292,7 @@ class LoginSerializer(serializers.Serializer):
         ):
             self.fields.pop("phone")
         if (
-            app_settings.AuthenticationMethods.PHONE
+            app_settings.AuthenticationMethods.EMAIL
             not in app_settings.AUTHENTICATION_METHODS
         ):
             self.fields.pop("email")
