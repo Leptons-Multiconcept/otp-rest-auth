@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.utils.module_loading import import_string
 
+
 class AppSettings(object):
     """
     test: AccountType can't be NONE and Verification be required
@@ -66,7 +67,9 @@ class AppSettings(object):
         """
         Account verification method.
         """
-        return self._setting("VERIFICATION_METHOD", self.AccountVerificationMethod.ACCOUNT)
+        return self._setting(
+            "VERIFICATION_METHOD", self.AccountVerificationMethod.ACCOUNT
+        )
 
     @property
     def VERIFICATION_REQUIRED(self):
@@ -96,9 +99,10 @@ class AppSettings(object):
 
     @property
     def ADAPTER(self):
-        from .adapter import DefaultAccountAdapter
+        default_adapter = "otp_rest_auth.adapter.DefaultAccountAdapter"
+        adapter_import_str = self._setting("ADAPTER", default_adapter)
 
-        return self._setting("ADAPTER", DefaultAccountAdapter)
+        return self._import_string(adapter_import_str)
 
     @property
     def PASSWORD_RESET_OTP_RECIPIENTS(self):
@@ -114,7 +118,9 @@ class AppSettings(object):
     @property
     def PASSWORD_RESET_CONFIRM_SERIALIZER(self):
         default_serializer = "otp_rest_auth.serializers.PasswordResetConfirmSerializer"
-        serializer = self._setting("PASSWORD_RESET_CONFIRM_SERIALIZER", default_serializer)
+        serializer = self._setting(
+            "PASSWORD_RESET_CONFIRM_SERIALIZER", default_serializer
+        )
 
         return self._import_string(serializer)
 
@@ -147,7 +153,7 @@ class AppSettings(object):
     def LOGIN_SERIALIZER(self):
         default_serializer = "otp_rest_auth.serializers.LoginSerializer"
         serializer = self._setting("LOGIN_SERIALIZER", default_serializer)
-        
+
         return self._import_string(serializer)
 
     @property
@@ -230,16 +236,16 @@ class AppSettings(object):
     def REGISTER_SERIALIZER(self):
         default_serializer = "otp_rest_auth.serializers.RegisterSerializer"
         serializer = self._setting("REGISTER_SERIALIZER", default_serializer)
-        
+
         return self._import_string(serializer)
 
     @property
     def OTP_SERIALIZER(self):
         default_serializer = "otp_rest_auth.serializers.OTPSerializer"
         serializer = self._setting("OTP_SERIALIZER", default_serializer)
-        
+
         return self._import_string(serializer)
-    
+
     @property
     def REGISTER_PERMISSION_CLASSES(self):
         return self._setting("REGISTER_PERMISSION_CLASSES", [])
@@ -285,14 +291,14 @@ class AppSettings(object):
     def USER_DETAILS_SERIALIZER(self):
         default_serializer = "otp_rest_auth.serializers.UserDetailsSerializer"
         serializer = self._setting("USER_DETAILS_SERIALIZER", default_serializer)
-        
+
         return self._import_string(serializer)
 
     @property
     def JWT_SERIALIZER_WITH_EXPIRATION(self):
         default_serializer = "otp_rest_auth.serializers.JWTSerializerWithExpiration"
         serializer = self._setting("JWT_SERIALIZER_WITH_EXPIRATION", default_serializer)
-        
+
         return self._import_string(serializer)
 
     @property
