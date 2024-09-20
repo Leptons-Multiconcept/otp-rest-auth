@@ -1,0 +1,4 @@
+{% load i18n %}
+{% autoescape off %}
+{% blocktrans %}Your OTP Code is {{otp_code}}{% endblocktrans %}
+{% endautoescape %}

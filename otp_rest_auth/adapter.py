@@ -252,18 +252,19 @@ class DefaultAccountAdapter(object):
     def send_otp_to_email(self, totp, email):
         from .models import TOTP
 
-        verify_your = "account"
-        if totp.purpose == TOTP.PURPOSE_ACCOUNT_VERIFICATION:
-            verify_your = "email address"
-
         ctx = {
             "user": totp.user,
-            "otp": totp.otp,
-            "verify_your": verify_your,
+            "otp_code": totp.otp,
             "site_name": app_settings.SITE_NAME,
         }
 
-        email_template = "account/email/account_confirmation"
+        if totp.purpose == TOTP.PURPOSE_EMAIL_VERIFICATION:
+            email_template = "account/email/email_confirmation"
+        if totp.purpose == TOTP.PURPOSE_ACCOUNT_VERIFICATION:
+            email_template = "account/email/account_confirmation"
+        if totp.purpose == TOTP.PURPOSE_PASSWORD_RESET:
+            email_template = "account/email/password_reset"
+
         self.send_mail(email_template, email, ctx)
 
     def send_otp_to_user_email(self, totp):
@@ -298,4 +299,3 @@ class DefaultAccountAdapter(object):
     def send_otp_to_user_phone(self, totp):
         phone = getattr(totp.user, app_settings.USER_MODEL_PHONE_FIELD)
         return self.send_otp_to_phone(totp, phone)
-
