@@ -421,14 +421,12 @@ class AppSettings(object):
 
     @property
     def SMS_VERIFICATION_MESSAGE(self):
-        default_msg = f"Your {self.SITE_NAME} verification code is: <otp_code>"
+        default_msg = f"Your {self.SITE_NAME} verification OTP is: <otp_code>"
         return self._setting("SMS_VERIFICATION_MESSAGE", default_msg)
 
     @property
     def SMS_PASSWORD_RESET_MESSAGE(self):
-        default_msg = (
-            f"Your {self.SITE_NAME} security code to reset password is: <otp_code>"
-        )
+        default_msg = f"Your {self.SITE_NAME} password reset OTP is: <otp_code>"
         return self._setting("SMS_PASSWORD_RESET_MESSAGE", default_msg)
 
 
