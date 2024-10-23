@@ -600,7 +600,7 @@ class ChangeEmailConfrimationView(GenericAPIView):
 
 
 class ChangePhoneConfirmationView(GenericAPIView):
-    serializer_class = ChangeEmailConfirmSerializer
+    serializer_class = ChangePhoneConfirmSerializer
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
