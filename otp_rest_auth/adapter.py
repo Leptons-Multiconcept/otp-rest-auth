@@ -275,6 +275,9 @@ class DefaultAccountAdapter(object):
         from twilio.rest import Client
         from .models import TOTP
 
+        if not phone:
+            return
+
         sms_msg = app_settings.SMS_VERIFICATION_MESSAGE
         if totp.purpose == TOTP.PURPOSE_PASSWORD_RESET:
             sms_msg = app_settings.SMS_PASSWORD_RESET_MESSAGE
@@ -297,5 +300,9 @@ class DefaultAccountAdapter(object):
         return message.sid
 
     def send_otp_to_user_phone(self, totp):
-        phone = getattr(totp.user, app_settings.USER_MODEL_PHONE_FIELD)
+        if hasattr(totp.user, app_settings.USER_MODEL_PHONE_FIELD):
+            phone = getattr(totp.user, app_settings.USER_MODEL_PHONE_FIELD)
+        else:
+            phone = None
+
         return self.send_otp_to_phone(totp, phone)
