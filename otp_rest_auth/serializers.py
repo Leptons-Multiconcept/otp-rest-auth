@@ -68,12 +68,7 @@ class RegisterSerializer(serializers.Serializer):
             user = get_user_by_phone(phone)
             account = Account.objects.filter(user=user).first()
 
-            if (
-                account
-                and not account.is_verified
-                and app_settings.VERIFICATION_METHOD
-                == app_settings.AccountVerificationMethod.PHONE
-            ):
+            if account and not account.is_verified:
                 raise serializers.ValidationError(
                     _(
                         "Phone number is not verified. A verification code was sent to your phone. "
@@ -93,12 +88,7 @@ class RegisterSerializer(serializers.Serializer):
             user = get_user_by_email(email)
             account = Account.objects.filter(user=user).first()
 
-            if (
-                account
-                and not account.is_verified
-                and app_settings.VERIFICATION_METHOD
-                == app_settings.AccountVerificationMethod.EMAIL
-            ):
+            if account and not account.is_verified:
                 raise serializers.ValidationError(
                     _(
                         "Email address is not verified. A verification code was sent to your email. "
