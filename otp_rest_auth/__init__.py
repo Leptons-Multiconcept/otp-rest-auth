@@ -1,4 +1,4 @@
-VERSION = (0, 1, 9, "final", 0)
+VERSION = (0, 2, 0, "final", 0)
 
 __title__ = "otp-rest-auth"
 __version_info__ = VERSION
