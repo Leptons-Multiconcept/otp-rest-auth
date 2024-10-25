@@ -3,7 +3,7 @@ Installation
 
 1. Install the package:
 ```
-pip install otp_rest_auth
+pip install django_otp_rest_auth
 ```
 2. Add `otp_rest_auth` app to INSTALLED_APPS in your django settings.py:
 ```
