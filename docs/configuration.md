@@ -5,7 +5,10 @@ Place the following configuration options in your settings.py under the `OTP_RES
 Specifies the adapter class to use, enabling you to modify certain default behaviors.
 
 ***`VERIFICATION_TYPE` (default: `"account"` alternatives: `"email"` or `"phone"`)***  
-Specifies the method to verify a user. If set to `account`, verification OTP is sent to the user's email and phone number.
+Specifies the method to verify a user. 
+- **`account`**: Sends a verification OTP to both the user's email and phone number. Upon verification, the account is activated, while the email and phone statuses remain unverified.
+- **`email`**: Sends a verification OTP to the user's email only. Upon verification, the account is activated, with the phone remaining unverified.
+- **`phone`**: Sends a verification OTP to the user's phone only. Upon verification, the account is activated, with the email remaining unverified.
 
 ***`VERIFICATION_REQUIRED` (default: `True`)***  
 By setting this to `True`, a user will remain inactive and unable to log in until verified.
