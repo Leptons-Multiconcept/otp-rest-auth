@@ -595,7 +595,9 @@ class ChangeEmailConfrimationView(GenericAPIView):
         totp.user.save()
         user_account.save()
 
-        return Response(status=status.HTTP_200_OK)
+        return Response(
+            {"detail": "Email address updated successfully."}, status=status.HTTP_200_OK
+        )
 
 
 class ChangePhoneConfirmationView(GenericAPIView):
@@ -644,4 +646,6 @@ class ChangePhoneConfirmationView(GenericAPIView):
 
         totp.user.save()
         user_account.save()
-        return Response(status=status.HTTP_200_OK)
+        return Response(
+            {"detail": "Phone number updated successfully."}, status=status.HTTP_200_OK
+        )
