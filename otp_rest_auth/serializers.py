@@ -517,7 +517,7 @@ class ChangeEmailSerializer(serializers.Serializer):
 class ChangePhoneSerializer(serializers.Serializer):
     new_phone = PhoneNumberField()
 
-    def validate_new_email(self, new_phone):
+    def validate_new_phone(self, new_phone):
         phone_field = app_settings.USER_MODEL_PHONE_FIELD
         if app_settings.UNIQUE_PHONE:
             if UserModel.objects.filter(**{phone_field: new_phone}).exists():
