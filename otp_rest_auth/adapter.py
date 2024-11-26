@@ -259,11 +259,11 @@ class DefaultAccountAdapter(object):
         }
 
         if totp.purpose == TOTP.PURPOSE_EMAIL_VERIFICATION:
-            email_template = "account/email/email_confirmation"
+            email_template = "account/email/otp_email_confirmation"
         if totp.purpose == TOTP.PURPOSE_ACCOUNT_VERIFICATION:
-            email_template = "account/email/account_confirmation"
+            email_template = "account/email/otp_account_confirmation"
         if totp.purpose == TOTP.PURPOSE_PASSWORD_RESET:
-            email_template = "account/email/password_reset"
+            email_template = "account/email/otp_password_reset"
 
         self.send_mail(email_template, email, ctx)
 
