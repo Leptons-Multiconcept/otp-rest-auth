@@ -17,14 +17,7 @@ from . import signals
 from .utils import get_throttle_scope
 from .models import Account, TOTP, TOTPMetadata
 from .otp_ops import send_verification_otp, verify_otp
-from .serializers import (
-    ResendOTPSerializer,
-    LogoutSerializer,
-    ChangeEmailSerializer,
-    ChangePhoneSerializer,
-    ChangeEmailConfirmSerializer,
-    ChangePhoneConfirmSerializer,
-)
+
 from .jwt_auth import get_tokens_for_user, set_jwt_cookies, unset_jwt_cookies
 
 
@@ -84,23 +77,28 @@ def verify(serializer, request, totp_purpose, login=True) -> Response:
     if not success:
         return Response({"detail": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
 
+    response_data = {}
+
     user_account = Account.objects.get(user=totp.user)
     if totp_purpose == TOTP.PURPOSE_ACCOUNT_VERIFICATION:
         user_account.is_verified = True
+        response_data = {"detail": "Account verified successfully."}
     elif totp_purpose == TOTP.PURPOSE_EMAIL_VERIFICATION:
         user_account.email_verified = True
+        response_data = {"detail": "Email verified successfully."}
     elif totp_purpose == TOTP.PURPOSE_PHONE_VERIFICATION:
         user_account.phone_verified = True
+        response_data = {"detail": "Phone number verified successfully."}
 
     totp.user.is_active = True
 
     totp.user.save()
     user_account.save()
 
-    response = Response(status=status.HTTP_200_OK)
+    response = Response(data=response_data, status=status.HTTP_200_OK)
     if login and app_settings.LOGIN_UPON_VERIFICATION:
         data = get_login_response_data(totp.user, {"request": request})
-        response.data = data
+        response.data = {**response_data, **data}
 
         set_jwt_cookies(response, data["access"], data["refresh"])
 
@@ -261,7 +259,8 @@ class ResendOTPView(views.APIView):
         return super().get_throttles()
 
     def get_serializer(self, *args, **kwargs):
-        return ResendOTPSerializer(*args, **kwargs)
+        serializer = app_settings.RESEND_OTP_SERIALIZER
+        return serializer(*args, **kwargs)
 
     def get(self, *args, **kwargs):
         raise MethodNotAllowed("GET")
@@ -356,7 +355,7 @@ class LogoutView(GenericAPIView):
     """
 
     permission_classes = [IsAuthenticated]
-    serializer_class = LogoutSerializer
+    serializer_class = app_settings.LOGOUT_SERIALIZER
 
     def get_throttles(self):
         self.throttle_scope = get_throttle_scope("otp_auth_logout")
@@ -514,7 +513,7 @@ class UserDetailsView(RetrieveUpdateAPIView):
 
 
 class InvokeChangeEmailOTPView(GenericAPIView):
-    serializer_class = ChangeEmailSerializer
+    serializer_class = app_settings.CHANGE_EMAIL_SERIALIZER
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
@@ -532,7 +531,7 @@ class InvokeChangeEmailOTPView(GenericAPIView):
 
 
 class InvokeChangePhoneOTPView(GenericAPIView):
-    serializer_class = ChangePhoneSerializer
+    serializer_class = app_settings.CHANGE_PHONE_SERIALIZER
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
@@ -550,7 +549,7 @@ class InvokeChangePhoneOTPView(GenericAPIView):
 
 
 class ChangeEmailConfrimationView(GenericAPIView):
-    serializer_class = ChangeEmailConfirmSerializer
+    serializer_class = app_settings.CHANGE_EMAIL_CONFIRM_SERIALIZER
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
@@ -600,7 +599,7 @@ class ChangeEmailConfrimationView(GenericAPIView):
 
 
 class ChangePhoneConfirmationView(GenericAPIView):
-    serializer_class = ChangePhoneConfirmSerializer
+    serializer_class = app_settings.CHANGE_PHONE_CONFIRM_SERIALIZER
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):

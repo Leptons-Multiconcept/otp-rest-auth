@@ -139,6 +139,13 @@ class AppSettings(object):
         return self._import_string(serializer)
 
     @property
+    def RESEND_OTP_SERIALIZER(self):
+        default_serializer = "otp_rest_auth.serializers.ResendOTPSerializer"
+        serializer = self._setting("RESEND_OTP_SERIALIZER", default_serializer)
+
+        return self._import_string(serializer)
+
+    @property
     def OLD_PASSWORD_FIELD_ENABLED(self):
         return self._setting("OLD_PASSWORD_FIELD_ENABLED", False)
 
@@ -153,6 +160,45 @@ class AppSettings(object):
     def LOGIN_SERIALIZER(self):
         default_serializer = "otp_rest_auth.serializers.LoginSerializer"
         serializer = self._setting("LOGIN_SERIALIZER", default_serializer)
+
+        return self._import_string(serializer)
+
+    @property
+    def LOGOUT_SERIALIZER(self):
+        default_serializer = "otp_rest_auth.serializers.LogoutSerializer"
+        serializer = self._setting("LOGOUT_SERIALIZER", default_serializer)
+
+        return self._import_string(serializer)
+
+    @property
+    def CHANGE_EMAIL_SERIALIZER(self):
+        default_serializer = "otp_rest_auth.serializers.ChangeEmailSerializer"
+        serializer = self._setting("CHANGE_EMAIL_SERIALIZER", default_serializer)
+
+        return self._import_string(serializer)
+
+    @property
+    def CHANGE_PHONE_SERIALIZER(self):
+        default_serializer = "otp_rest_auth.serializers.ChangePhoneSerializer"
+        serializer = self._setting("CHANGE_PHONE_SERIALIZER", default_serializer)
+
+        return self._import_string(serializer)
+
+    @property
+    def CHANGE_EMAIL_CONFIRM_SERIALIZER(self):
+        default_serializer = "otp_rest_auth.serializers.ChangeEmailConfirmSerializer"
+        serializer = self._setting(
+            "CHANGE_EMAIL_CONFIRM_SERIALIZER", default_serializer
+        )
+
+        return self._import_string(serializer)
+
+    @property
+    def CHANGE_PHONE_CONFIRM_SERIALIZER(self):
+        default_serializer = "otp_rest_auth.serializers.ChangePhoneConfirmSerializer"
+        serializer = self._setting(
+            "CHANGE_PHONE_CONFIRM_SERIALIZER", default_serializer
+        )
 
         return self._import_string(serializer)
 
