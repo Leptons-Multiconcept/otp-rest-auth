@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.test.utils import override_settings
@@ -13,6 +14,13 @@ User = get_user_model()
 
 class ResetPasswordViewTests(APITestCase):
     def setUp(self):
+        settings.OTP_REST_AUTH = {
+            "VERIFICATION_REQUIRED": True,
+            "LOGIN_UPON_VERIFICATION": True,
+            "AUTHENTICATION_METHODS": ["email", "username", "phone"],
+            "USER_DETAILS_SERIALIZER": "user.serializer.UserSerializer",
+        }
+
         self.client = APIClient()
         self.user = User.objects.create_user(
             username="testuser",
@@ -69,6 +77,7 @@ class ResetPasswordViewTests(APITestCase):
         self.assertIsNotNone(totp)
         mock_send_verification_otp.assert_called_once_with(totp, ANY)
 
+    @override_settings(OTP_REST_AUTH={"AUTHENTICATION_METHODS": ["phone"]})
     def test_reset_password_phone_invalid_data(self):
         data = {"phone": "invalid_phone"}
         response = self.client.post(self.url, data, format="json")

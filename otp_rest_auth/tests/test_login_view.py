@@ -15,6 +15,13 @@ from otp_rest_auth.app_settings import app_settings
 User = get_user_model()
 
 
+@override_settings(
+    OTP_REST_AUTH={
+        "VERIFICATION_REQUIRED": True,
+        "LOGIN_UPON_VERIFICATION": True,
+        "AUTHENTICATION_METHODS": ["email", "username"],
+    }
+)
 class LoginViewTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
@@ -32,11 +39,6 @@ class LoginViewTests(TestCase):
         self.account.is_verified = True
         self.account.save()
 
-    @override_settings(
-        OTP_REST_AUTH={
-            "VERIFICATION_METHOD": app_settings.AccountVerificationMethod.ACCOUNT,
-        }
-    )
     def test_post_valid_credentials(self):
         data = {"username": "testuser", "password": "password"}
         response = self.client.post(self.url, data, format="json")
