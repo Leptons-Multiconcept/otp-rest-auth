@@ -175,6 +175,38 @@ Specifies the SMS verification message.
 ***`SMS_PASSWORD_RESET_MESSAGE` (default: `"Your DjangoApp security code to reset password is: <otp_code>"`)***  
 Specifies the SMS password reset message.
 
+***`USER_UNIQUE_CONSTRAINT` (default: `None`)***   
+Specifies the name of a `django.db.models.UniqueConstraint` to enforce uniqueness for users with different types.
+Example:
+```python
+from django.db import models
+
+class User(models.Model):
+    USER_TYPE_CHOICES = [("ADMIN", "Admin"), ("CUSTOMER", "Customer")]
+
+    email = models.EmailField()
+    user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["email", "user_type"],
+                name="unique_email_per_user_type"
+            )
+        ]
+```
+```python
+# settings.py
+
+...
+
+OTP_REST_AUTH = {
+    ...,
+    "USER_UNIQUE_CONSTRAINT": "unique_email_per_user_type",
+    ...,
+}
+```
+
 ```python
 OTP_REST_AUTH = {
     'ADAPTER': 'otp_rest_auth.adapter.DefaultAccountAdapter',
