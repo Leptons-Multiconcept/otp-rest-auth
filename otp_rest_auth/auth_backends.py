@@ -23,11 +23,11 @@ class AuthenticationBackend(ModelBackend):
             if auth_method_field == app_settings.USER_MODEL_USERNAME_FIELD:
                 # username query is case sensitive if app_settings.PRESERVE_USERNAME_CASING
                 # is set to True
-                user = get_user_by_username(method_value)
+                user = get_user_by_username(method_value, credentials)
             elif auth_method_field == app_settings.USER_MODEL_EMAIL_FIELD:
-                user = get_user_by_email(method_value)
+                user = get_user_by_email(method_value, credentials)
             elif auth_method_field == app_settings.USER_MODEL_PHONE_FIELD:
-                user = get_user_by_phone(method_value)
+                user = get_user_by_phone(method_value, credentials)
 
             if not user or not user.check_password(credentials["password"]):
                 return None
