@@ -92,21 +92,11 @@ class DefaultAccountAdapter(object):
         Saves a new `User` instance using information provided in the
         signup form.
         """
-        from .utils import user_email, user_field, user_username, user_phone
+        from .utils import user_field
 
         data = form.cleaned_data
-        first_name = data.get("first_name")
-        last_name = data.get("last_name")
-        email = data.get("email")
-        phone = data.get("phone")
-        username = data.get("username")
-        user_email(user, email)
-        user_phone(user, phone)
-        user_username(user, username)
-        if first_name:
-            user_field(user, "first_name", first_name)
-        if last_name:
-            user_field(user, "last_name", last_name)
+        [user_field(user, field, value) for field, value in data.items() if value]
+
         if "password1" in data:
             user.set_password(data["password1"])
         else:
@@ -255,6 +245,7 @@ class DefaultAccountAdapter(object):
         ctx = {
             "user": totp.user,
             "otp_code": totp.otp,
+            "otp_exp": totp.expiration_time,
             "site_name": app_settings.SITE_NAME,
         }
 
