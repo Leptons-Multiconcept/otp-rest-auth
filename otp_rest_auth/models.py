@@ -52,6 +52,14 @@ class TOTP(models.Model):
         (PURPOSE_ACCOUNT_VERIFICATION, "Account Verification"),
     ]
 
+    # verfication_method = app_settings.VERIFICATION_METHOD
+    # if verfication_method in app_settings.AccountVerificationMethod.PHONE:
+    #     PURPOSE_CHOICES.append((PURPOSE_PHONE_VERIFICATION, "Phone Verification"))
+    # if verfication_method in app_settings.AccountVerificationMethod.EMAIL:
+    #     PURPOSE_CHOICES.append((PURPOSE_EMAIL_VERIFICATION, "Email Verification"))
+    # if verfication_method in app_settings.AccountVerificationMethod.ACCOUNT:
+    #     PURPOSE_CHOICES.append((PURPOSE_ACCOUNT_VERIFICATION, "Account Verification"))
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -106,7 +114,8 @@ class TOTP(models.Model):
 
         super().save(*args, **kwargs)
 
+
 class TOTPMetadata(models.Model):
-    totp = models.OneToOneField(TOTP, on_delete=models.CASCADE, related_name='metadata')
+    totp = models.OneToOneField(TOTP, on_delete=models.CASCADE, related_name="metadata")
     new_phone = PhoneNumberField(null=True)
     new_email = models.EmailField(null=True)
