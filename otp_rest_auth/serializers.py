@@ -27,13 +27,21 @@ class RegisterSerializer(serializers.Serializer):
         min_length=app_settings.USERNAME_MIN_LENGTH,
         required=app_settings.USERNAME_REQUIRED,
     )
-    phone = serializers.CharField()
-    email = serializers.EmailField(required=app_settings.PHONE_REQUIRED)
+    phone = serializers.CharField(required=app_settings.PHONE_REQUIRED)
+    email = serializers.EmailField(required=app_settings.EMAIL_REQUIRED)
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        for field in app_settings.get_user_unique_constraint_fields():
+            if field not in self.fields:
+                self.fields[field] = serializers.CharField()
+
+                field_choices = UserModel._meta.get_field(field).choices
+                if field_choices:
+                    self.fields[field] = serializers.ChoiceField(choices=field_choices)
 
         if not app_settings.SIGNUP_PASSWORD_ENTER_TWICE:
             self.fields.pop("password1")
@@ -62,80 +70,80 @@ class RegisterSerializer(serializers.Serializer):
         username = adapter.clean_username(username)
         return username
 
-    def validate_phone(self, phone):
-        phone = adapter.clean_phone(phone)
-        if app_settings.UNIQUE_PHONE:
-            user = get_user_by_phone(phone)
-            account = Account.objects.filter(user=user).first()
-
-            if account and not account.is_verified:
-                raise serializers.ValidationError(
-                    _(
-                        "Phone number is not verified. A verification code was sent to your phone. "
-                        "Please verify your number or request a new code."
-                    )
-                )
-            elif account and account.is_verified:
-                raise serializers.ValidationError(
-                    _("A user is already registered with this phone number."),
-                )
-
-        return phone
-
-    def validate_email(self, email):
-        email = adapter.clean_email(email)
-        if app_settings.UNIQUE_EMAIL:
-            user = get_user_by_email(email)
-            account = Account.objects.filter(user=user).first()
-
-            if account and not account.is_verified:
-                raise serializers.ValidationError(
-                    _(
-                        "Email address is not verified. A verification code was sent to your email. "
-                        "Please verify your email or request a new code."
-                    )
-                )
-            elif account and account.is_verified:
-                raise serializers.ValidationError(
-                    _("A user is already registered with this e-mail address."),
-                )
-
-        return email
-
     def validate_password1(self, password):
         if app_settings.SIGNUP_PASSWORD_VERIFICATION:
             return adapter.clean_password(password)
 
     def validate(self, data):
+        # Validate email
+        if data.get("email") and app_settings.UNIQUE_EMAIL:
+            email = adapter.clean_email(data["email"])
+            user = get_user_by_email(email, data)
+            account = Account.objects.filter(user=user).first()
+
+            if account and not account.is_verified:
+                raise serializers.ValidationError(
+                    {
+                        "email": _(
+                            "Email address is not verified. A verification code was sent to your email. "
+                            "Please verify your email or request a new code."
+                        )
+                    }
+                )
+            elif account and account.is_verified:
+                raise serializers.ValidationError(
+                    {
+                        "email": _(
+                            "A user is already registered with this e-mail address."
+                        )
+                    },
+                )
+
+        # Validate phone
+        if data.get("phone") and app_settings.UNIQUE_PHONE:
+            phone = adapter.clean_phone(data["phone"])
+            user = get_user_by_phone(phone, data)
+            account = Account.objects.filter(user=user).first()
+
+            if account and not account.is_verified:
+                raise serializers.ValidationError(
+                    {
+                        "phone": _(
+                            "Phone number is not verified. A verification code was sent to your phone. "
+                            "Please verify your number or request a new code."
+                        )
+                    }
+                )
+            elif account and account.is_verified:
+                raise serializers.ValidationError(
+                    {
+                        "phone": _(
+                            "A user is already registered with this phone number."
+                        )
+                    },
+                )
+
         if app_settings.SIGNUP_PASSWORD_ENTER_TWICE:
             if data["password1"] != data["password2"]:
                 raise serializers.ValidationError(
                     _("The two password fields didn't match.")
                 )
 
-        if (
-            app_settings.VERIFICATION_METHOD
-            == app_settings.AccountVerificationMethod.ACCOUNT
-        ):
-            user_from_email = get_user_by_email(data.get("email"))
-            user_from_phone = get_user_by_phone(data.get("phone"))
-            if user_from_email or user_from_phone:
-                raise serializers.ValidationError(
-                    _(
-                        "An account already exists with the provided email or phone number. "
-                        "Please verify your account or use a different email or phone number."
-                    )
-                )
-
         return data
 
     def get_cleaned_data(self):
-        return {
+        data = {
             "username": self.validated_data.get("username", ""),
             "password1": self.validated_data.get("password1", ""),
             "email": self.validated_data.get("email", ""),
             "phone": self.validated_data.get("phone", ""),
         }
+
+        for field in app_settings.get_user_unique_constraint_fields():
+            if field in self.validated_data:
+                data[field] = self.validated_data.get(field, "")
+
+        return data
 
     def save(self, request):
         user = adapter.new_user(request)
@@ -164,6 +172,28 @@ class ResendOTPSerializer(serializers.Serializer):
     phone = serializers.CharField(required=False)
     email = serializers.EmailField(required=False)
     purpose = serializers.ChoiceField(choices=TOTP.PURPOSE_CHOICES, required=True)
+
+    def __init__(self, instance=None, data=..., **kwargs):
+        super().__init__(instance, data, **kwargs)
+
+        for field in app_settings.get_user_unique_constraint_fields():
+            if field not in self.fields:
+                self.fields[field] = serializers.CharField()
+
+                field_choices = UserModel._meta.get_field(field).choices
+                if field_choices:
+                    self.fields[field] = serializers.ChoiceField(choices=field_choices)
+
+        if (
+            app_settings.AuthenticationMethods.PHONE
+            not in app_settings.AUTHENTICATION_METHODS
+        ):
+            self.fields.pop("phone")
+        if (
+            app_settings.AuthenticationMethods.EMAIL
+            not in app_settings.AUTHENTICATION_METHODS
+        ):
+            self.fields.pop("email")
 
     def validate_phone(self, phone):
         return adapter.clean_phone(phone)
@@ -271,6 +301,14 @@ class LoginSerializer(serializers.Serializer):
     def __init__(self, instance=None, data=..., **kwargs):
         super().__init__(instance, data, **kwargs)
 
+        for field in app_settings.get_user_unique_constraint_fields():
+            if field not in self.fields:
+                self.fields[field] = serializers.CharField()
+
+                field_choices = UserModel._meta.get_field(field).choices
+                if field_choices:
+                    self.fields[field] = serializers.ChoiceField(choices=field_choices)
+
         if (
             app_settings.AuthenticationMethods.USERNAME
             not in app_settings.AUTHENTICATION_METHODS
@@ -301,6 +339,13 @@ class LoginSerializer(serializers.Serializer):
             if data.get(method) and data.get("password"):
                 credentials[method] = data.get(method)
                 credentials["password"] = data.get("password")
+
+                const_fields = app_settings.get_user_unique_constraint_fields()
+                [
+                    credentials.update({field: data[field]})
+                    for field in const_fields
+                    if data.get(field)
+                ]
                 break
 
         if not credentials:
@@ -371,6 +416,33 @@ class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False, allow_blank=True)
     username = serializers.CharField(required=False, allow_blank=True)
 
+    def __init__(self, instance=None, data=..., **kwargs):
+        super().__init__(instance, data, **kwargs)
+
+        for field in app_settings.get_user_unique_constraint_fields():
+            if field not in self.fields:
+                self.fields[field] = serializers.CharField()
+
+                field_choices = UserModel._meta.get_field(field).choices
+                if field_choices:
+                    self.fields[field] = serializers.ChoiceField(choices=field_choices)
+
+        if (
+            app_settings.AuthenticationMethods.USERNAME
+            not in app_settings.AUTHENTICATION_METHODS
+        ):
+            self.fields.pop("username")
+        if (
+            app_settings.AuthenticationMethods.PHONE
+            not in app_settings.AUTHENTICATION_METHODS
+        ):
+            self.fields.pop("phone")
+        if (
+            app_settings.AuthenticationMethods.EMAIL
+            not in app_settings.AUTHENTICATION_METHODS
+        ):
+            self.fields.pop("email")
+
     def get_user(self, data):
         user = None
         requried_auth_method_provided = False
@@ -387,11 +459,11 @@ class PasswordResetSerializer(serializers.Serializer):
                 method_field = get_auth_method_field(method)
 
                 if method_field == app_settings.USER_MODEL_USERNAME_FIELD:
-                    user = get_user_by_username(method_value)
+                    user = get_user_by_username(method_value, data)
                 elif method_field == app_settings.USER_MODEL_EMAIL_FIELD:
-                    user = get_user_by_email(method_value)
+                    user = get_user_by_email(method_value, data)
                 elif method_field == app_settings.USER_MODEL_PHONE_FIELD:
-                    user = get_user_by_phone(method_value)
+                    user = get_user_by_phone(method_value, data)
 
                 if user:
                     break
