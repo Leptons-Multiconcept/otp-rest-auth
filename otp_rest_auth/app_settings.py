@@ -13,25 +13,31 @@ class AppSettings(object):
 
     def __init__(self):
         if self.VERIFICATION_METHOD is self.AccountVerificationMethod.NONE:
-            assert (
-                self.VERIFICATION_REQUIRED is False
-            ), "VERIFICATION_REQUIRED must be False when VERIFICATION_METHOD is set to None"
+            assert self.VERIFICATION_REQUIRED is False, (
+                "VERIFICATION_REQUIRED must be False when VERIFICATION_METHOD is set to None"
+            )
 
         if self.VERIFICATION_METHOD == self.AccountVerificationMethod.ACCOUNT:
-            assert (
-                self.PHONE_REQUIRED and self.EMAIL_REQUIRED
-            ), "Both PHONE and EMAIL must be required for Account verification"
-            assert (
-                self.UNIQUE_PHONE and self.UNIQUE_EMAIL
-            ), "Both PHONE and EMAIL must be unique for Account verification"
+            assert self.PHONE_REQUIRED and self.EMAIL_REQUIRED, (
+                "Both PHONE and EMAIL must be required for Account verification"
+            )
+            assert self.UNIQUE_PHONE and self.UNIQUE_EMAIL, (
+                "Both PHONE and EMAIL must be unique for Account verification"
+            )
 
-        if self.VERIFICATION_METHOD == "Phone":
+        if self.VERIFICATION_METHOD == "phone":
             assert self.PHONE_REQUIRED, "PHONE must be required for Phone verification"
-            assert self.UNIQUE_PHONE, "PHONE must be unique for Phone verification"
 
-        if self.VERIFICATION_METHOD == "Email":
+            const_fields = self.get_user_unique_constraint_fields()
+            if "phone" not in const_fields:
+                assert self.UNIQUE_PHONE, "PHONE must be unique for Phone verification"
+
+        if self.VERIFICATION_METHOD == "email":
             assert self.EMAIL_REQUIRED, "EMAIL must be required for Email verification"
-            assert self.EMAIL_UNIQUE, "EMAIL must be unique for Email verification"
+
+            const_fields = self.get_user_unique_constraint_fields()
+            if "email" not in const_fields:
+                assert self.UNIQUE_EMAIL, "EMAIL must be unique for Email verification"
 
     class AccountVerificationMethod:
         # After signing up, keep the user account inactive until the account
@@ -62,14 +68,44 @@ class AppSettings(object):
         otp_rest_auth_settings = getattr(settings, "OTP_REST_AUTH", {})
         return otp_rest_auth_settings.get(attr, default)
 
+    def get_user_unique_constraint_fields(self):
+        """
+        Get the unique constraint fields for the user model.
+        """
+        from django.db import models
+        from django.contrib.auth import get_user_model
+
+        const_name = self.USER_UNIQUE_CONSTRAINT
+        if const_name is None:
+            return []
+
+        UserModel = get_user_model()
+        constraints = UserModel._meta.constraints
+        const_map = {
+            c.name: c.fields
+            for c in constraints
+            if isinstance(c, models.UniqueConstraint)
+        }
+
+        return const_map.get(const_name, [])
+
+    @property
+    def USER_UNIQUE_CONSTRAINT(self):
+        """
+        Unique constraint for the user model to support multiple user types.
+        """
+        constraint_name = self._setting("USER_UNIQUE_CONSTRAINT", None)
+        return constraint_name
+
     @property
     def VERIFICATION_METHOD(self):
         """
         Account verification method.
         """
-        return self._setting(
+        method = self._setting(
             "VERIFICATION_METHOD", self.AccountVerificationMethod.ACCOUNT
         )
+        return method.lower()
 
     @property
     def VERIFICATION_REQUIRED(self):
