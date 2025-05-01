@@ -1,6 +1,7 @@
 from django.urls import path, include
 
 from .views import (
+    app_settings,
     RegisterView,
     ResendOTPView,
     ResetPasswordView,
@@ -46,11 +47,6 @@ urlpatterns = [
         ChangeEmailConfrimationView.as_view(),
         name="otp_rest_change_email_set",
     ),
-    path("verify/phone/", VerifyPhoneView.as_view(), name="otp_rest_verify_phone"),
-    path("verify/email/", VerifyEmailView.as_view(), name="otp_rest_verify_email"),
-    path(
-        "verify/account/", VerifyAccountView.as_view(), name="otp_rest_verify_account"
-    ),
     path(
         "password/reset/", ResetPasswordView.as_view(), name="otp_rest_password_reset"
     ),
@@ -67,3 +63,22 @@ urlpatterns = [
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("token/refresh/", get_refresh_view().as_view(), name="token_refresh"),
 ]
+
+if app_settings.VERIFICATION_METHOD in app_settings.AccountVerificationMethod.PHONE:
+    urlpatterns += [
+        path("verify/phone/", VerifyPhoneView.as_view(), name="otp_rest_verify_phone"),
+    ]
+
+if app_settings.VERIFICATION_METHOD in app_settings.AccountVerificationMethod.EMAIL:
+    urlpatterns += [
+        path("verify/email/", VerifyEmailView.as_view(), name="otp_rest_verify_email"),
+    ]
+
+if app_settings.VERIFICATION_METHOD in app_settings.AccountVerificationMethod.ACCOUNT:
+    urlpatterns += [
+        path(
+            "verify/account/",
+            VerifyAccountView.as_view(),
+            name="otp_rest_verify_account",
+        ),
+    ]
